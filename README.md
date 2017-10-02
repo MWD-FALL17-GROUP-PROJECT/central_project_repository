@@ -1,2 +1,2 @@
 # central_project_repository
-Description of Phase I to be updated shortly
+Description of Phase II to be updated shortly
