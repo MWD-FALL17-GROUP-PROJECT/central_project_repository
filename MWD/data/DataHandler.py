@@ -171,6 +171,8 @@ def actor_tag_df():
 			actor_tag_dict[tag] = weight
 		dictList.append(actor_tag_dict)
 	df = df.append(dictList,ignore_index=True)
+	df.index = actorList
+	return df
 
 def actor_similarity_tagVector(actor_id_given):
 	actor_weight_vector_tf_idf = actor_tagVector()
