@@ -10,6 +10,8 @@ from computations import decompositions
 from util import constants
 from util import formatter
 
+import numpy as np
+from operator import itemgetter
 
 max_rank = 0
 min_rank = sys.maxsize
@@ -31,6 +33,13 @@ tag_movie_df = pd.read_csv(constants.DIRECTORY + "mltags.csv")
 genre_movie_df = pd.read_csv(constants.DIRECTORY + "mlmovies.csv")
 tag_id_df = pd.read_csv(constants.DIRECTORY + "genome-tags.csv")
 user_ratings_df = pd.read_csv(constants.DIRECTORY + "mlratings.csv")
+
+actor_movie_map = defaultdict(set)
+movie_actor_map = defaultdict(set)
+movie_year_map = defaultdict(int)
+year_movie_map = defaultdict(int)
+movie_ratings_map = defaultdict(list)
+uniqueRatings = set()
 
 actor_movie_rank_map = defaultdict(set)
 movie_actor_rank_map = defaultdict(set)
@@ -79,7 +88,32 @@ def vectors():
 	tagset.clear()
 	print('Main : ', time.time() - t)
 
-
+def createDictionaries1():
+    global max_rank
+    global min_rank
+    global tag_count
+    global max_date
+    global min_date
+    for row in movie_actor_df.itertuples():
+        if row.actor_movie_rank < min_rank:
+            min_rank = row.actor_movie_rank
+        if row.actor_movie_rank > max_rank:
+            max_rank = row.actor_movie_rank
+        actor_movie_rank_map[row.actorid].add((row.movieid, row.actor_movie_rank))
+        movie_actor_rank_map[row.movieid].add((row.actorid, row.actor_movie_rank))
+        actor_movie_map[row.actorid].add((row.movieid))
+        movie_actor_map[row.movieid].add((row.actorid))
+    
+    for row in genre_movie_df.itertuples():
+        genres_list = row.genres.split("|")
+        for genre in genres_list:
+            genre_movie_map[genre].add(row.movieid)
+        movie_year_map[row.movieid]=row.year
+        year_movie_map[row.year]=row.movieid
+        
+    for row in user_ratings_df.itertuples():
+        movie_ratings_map[row.movieid].append(row.rating)
+        uniqueRatings.add(row.rating)
 # def load_genre_count_matrix(given_genre):
 # 	for row in genre_movie_df.itertuples():
 # 		genres_list = row.genres.split("|")
@@ -93,10 +127,7 @@ def vectors():
 
 def load_genre_matrix(given_genre):
 	movieCount = movie_tag_map.keys().__len__()
-	for row in genre_movie_df.itertuples():
-		genres_list = row.genres.split("|")
-		for genre in genres_list:
-			genre_movie_map[genre].add(row.movieid)
+	createDictionaries1()
 
 	tagList = sorted(list(tag_movie_map.keys()))
 	movieList = []
@@ -126,18 +157,8 @@ def load_genre_actor_matrix(given_genre):
 	global tag_count
 	global max_date
 	global min_date
-	for row in genre_movie_df.itertuples():
-		genres_list = row.genres.split("|")
-		for genre in genres_list:
-			genre_movie_map[genre].add(row.movieid)
 
-	for row in movie_actor_df.itertuples():
-		if row.actor_movie_rank < min_rank:
-			min_rank = row.actor_movie_rank
-		if row.actor_movie_rank > max_rank:
-			max_rank = row.actor_movie_rank
-		actor_movie_rank_map[row.actorid].add((row.movieid, row.actor_movie_rank))
-		movie_actor_rank_map[row.movieid].add((row.actorid, row.actor_movie_rank))
+	createDictionaries1()
 
 	actorList = sorted(list(actor_movie_rank_map.keys()))
 	df = pd.DataFrame(columns=actorList)
@@ -241,3 +262,54 @@ def actor_tagVector():
 		actor_weight_vector_tf_idf[actorID] = [(k, v) for k, v in tag_weight_tuple_tf_idf.items()]
 
 	return actor_weight_vector_tf_idf
+def get_dicts():
+    vectors()
+    createDictionaries1()
+    return movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map
+"""
+This function returns an Actor-Movie-Year Tensor.
+It creates this tensor by iterating through all the actors and then for each actor,
+it iterates through the actor's movies and assigns 1 to this actor, movie and movie's year index triple.
+"""
+def getTensor_ActorMovieYear():
+    createDictionaries1()
+    actors = sorted(list(actor_movie_map.keys()))
+    movies = sorted(list(movie_actor_map.keys()))
+    years = sorted(list(year_movie_map.keys()))
+    a = len(actors)
+    m = len(movies)
+    y = len(years)
+    tensor_ActorMovieYear = np.zeros(a*m*y).reshape(a,m,y)
+    for actor in actors:
+        for movie in actor_movie_map.get(actor):
+            tensor_ActorMovieYear[actors.index(actor),movies.index(movie),years.index(movie_year_map.get(movie))] = 1
+    return tensor_ActorMovieYear
+
+
+"""
+This function returns an Tag-Movie-Rating Tensor.
+It creates this tensor by iterating through all the movies in MLtags and then for each movie,
+it calculates ithe movies's average rating and then iterates through the movie's tags 
+and assign 1 to this movie, tag and ratings>=Average rating index triple.
+NOTE:
+Out of 86 Unique movies in MLRatings, only 27 of them have been tagged
+All the movies that are tagged have ratings for them.
+So it doesn't make sense to include movies without any tags in our tensor. 
+Therefore I am considering only movies from MLtags.csv
+"""
+def getTensor_TagMovieRating():
+    createDictionaries1()
+    vectors()
+    tags = sorted(list(tag_movie_map.keys()))
+    movies = sorted(list(movie_tag_map.keys()))
+    ratings = list(uniqueRatings)
+    t = len(tags)
+    m = len(movies)
+    r = len(ratings)
+    tensor_TagMovieRating = np.zeros(t*m*r).reshape(t,m,r)
+    for movie in movies:
+        movieRatings = movie_ratings_map.get(movie)
+        movieAvgRating = sum(movieRatings) / float(len(movieRatings))
+        for tag,date in movie_tag_map.get(movie):
+            tensor_TagMovieRating[tags.index(tag),movies.index(movie),range(math.ceil(movieAvgRating),r)] = 1
+    return tensor_TagMovieRating
