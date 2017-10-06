@@ -15,7 +15,7 @@ def simlarity_kullback_leibler(lda_vec1,lda_vec2):
     return kullback_leibler(lda_vec1,lda_vec2)
 
 '''
-Takes in two vectos as lists and assumes the length of the vectors is the same.
+Takes in two vectors as lists and assumes the length of the vectors is the same.
 returns cosine similarity between the two vectors as a float value.
 '''
 def cosineSim(vec1, vec2):

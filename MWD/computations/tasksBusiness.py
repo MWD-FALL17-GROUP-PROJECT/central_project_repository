@@ -106,3 +106,43 @@ def actor_task1c_SVD(actor_id):
             resultNames.append((weightActorTuple[0], DataHandler.actor_actorid_map.get(weightActorTuple[1])))
     print("Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are:")
     print(resultNames[0:10])
+    return
+
+def task1dImplementation_SVD(movie_id):
+    DataHandler.vectors()
+    actor_tag_df = DataHandler.actor_tag_df()
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    
+    moviesIndexList=list(movie_tag_df.index)
+    actorsIndexList = list(actor_tag_df.index)
+    actorsSize = len(actorsIndexList)
+    
+    actorU, actorSigma, actorV = decompositions.SVDDecomposition(actor_tag_df, 5)
+    movieU, movieSigma, movieV = decompositions.SVDDecomposition(movie_tag_df, 5)
+
+    
+    movieSemanticsToActorSemanticsMapping = np.matrix(movieV) * np.matrix(actorV.transpose())
+    movieInMovieSemantics = np.matrix(movieU[moviesIndexList.index(movie_id)])
+    movieInActorSemanticsMatrix = movieInMovieSemantics * movieSemanticsToActorSemanticsMapping
+    movieInActorSemantics = (movieInActorSemanticsMatrix.tolist())[0]
+
+    actorsInSemantics = np.matrix(actorU)
+    
+    actorsWithScores = []
+    
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    actorsForMovie = DataHandler.movie_actor_map.get(movie_id)    
+    
+    for index in range(0, actorsSize):
+        actor_id = actorsIndexList[index]
+        if actor_id in actorsForMovie:
+            continue
+        actorMatrix = actorsInSemantics[index]
+        actor = (actorMatrix.tolist())[0]
+        actorName = DataHandler.actor_actorid_map.get(actor_id)
+        actorsWithScores.append((metrics.cosineSim(actor, movieInActorSemantics), actorName))
+    resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=True)
+    print("10 Actors similar to movie " + str(movie_id) + " are: ")
+    print(resultActors[0:10])
+    return

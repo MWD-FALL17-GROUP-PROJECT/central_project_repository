@@ -364,3 +364,27 @@ def similarActors_LDA(givenActor):
     return top10
 
 
+def load_movie_tag_df():
+    movieCount = movie_tag_map.keys().__len__()
+    createDictionaries1()
+
+    tagList = sorted(list(tag_movie_map.keys()))
+    movieList = []
+    df = pd.DataFrame(columns=tagList)
+    for movie in movie_tag_map.keys():
+        tagsInMovie = movie_tag_map[movie]
+        tf_idf_map = dict()
+        if tagsInMovie:
+            movieList.append(movie)
+            for tag in tagList:
+                moviesInTagCount = len(tag_movie_map[tag])
+                tf_numerator = 0
+                for temp_movie, datetime in tag_movie_map[tag]:
+                    if movie == temp_movie:
+                        tf_numerator += formatter.normalizer(min_date, max_date, datetime)
+                tf = tf_numerator / len(tagsInMovie)
+                tf_idf = tf * math.log2(movieCount / moviesInTagCount)
+                tf_idf_map[tag] = tf_idf
+            df = df.append(tf_idf_map, ignore_index=True)
+    df.index = movieList
+    return df      
