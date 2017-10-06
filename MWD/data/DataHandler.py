@@ -4,12 +4,12 @@ import dateutil
 import sys
 import time
 import math
-
+import csv
 from computations import metrics
 from computations import decompositions
 from util import constants
 from util import formatter
-import csv
+
 
 max_rank = 0
 min_rank = sys.maxsize
@@ -26,11 +26,11 @@ genre_weight_vector_tf_idf = dict()
 user_tag_map_tf = defaultdict()
 user_tag_map_tf_idf = defaultdict()
 
-movie_actor_df = pd.read_csv(constants.DIRECTORY + "\movie-actor.csv")
-tag_movie_df = pd.read_csv(constants.DIRECTORY + "\mltags.csv")
-genre_movie_df = pd.read_csv(constants.DIRECTORY + "\mlmovies.csv")
-tag_id_df = pd.read_csv(constants.DIRECTORY + "\genome-tags.csv")
-user_ratings_df = pd.read_csv(constants.DIRECTORY + "\mlratings.csv")
+movie_actor_df = pd.read_csv(constants.DIRECTORY + "movie-actor.csv")
+tag_movie_df = pd.read_csv(constants.DIRECTORY + "mltags.csv")
+genre_movie_df = pd.read_csv(constants.DIRECTORY + "mlmovies.csv")
+tag_id_df = pd.read_csv(constants.DIRECTORY + "genome-tags.csv")
+user_ratings_df = pd.read_csv(constants.DIRECTORY + "mlratings.csv")
 
 actor_movie_rank_map = defaultdict(set)
 movie_actor_rank_map = defaultdict(set)
@@ -158,11 +158,23 @@ def load_genre_actor_matrix(given_genre):
 	df.index = movieList
 	return df
 
+def actor_tag_df():
+	actor_weight_vector_tf_idf = actor_tagVector()
+	tagList = sorted(list(tag_movie_map.keys()))
+	actorList = sorted(list(actor_movie_rank_map.keys()))
+	df = pd.DataFrame(columns=tagList)
+	dictList = []
+
+	for actor in actorList:
+		actor_tag_dict = dict.fromkeys(tagList,0.0)
+		for tag,weight in actor_weight_vector_tf_idf[actor]:
+			actor_tag_dict[tag] = weight
+		dictList.append(actor_tag_dict)
+	df = df.append(dictList,ignore_index=True)
 
 def actor_similarity_tagVector(actor_id_given):
 	actor_weight_vector_tf_idf = actor_tagVector()
 	actor_vector = actor_weight_vector_tf_idf[actor_id_given]
-
 	print(list(map(lambda x:tag_id_map[x[0]], sorted(actor_vector,key=lambda x:x[1]))))
 
 	actorsList = actor_movie_rank_map.keys()
