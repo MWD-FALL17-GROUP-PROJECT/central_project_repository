@@ -33,6 +33,7 @@ tag_movie_df = pd.read_csv(constants.DIRECTORY + "mltags.csv")
 genre_movie_df = pd.read_csv(constants.DIRECTORY + "mlmovies.csv")
 tag_id_df = pd.read_csv(constants.DIRECTORY + "genome-tags.csv")
 user_ratings_df = pd.read_csv(constants.DIRECTORY + "mlratings.csv")
+actor_info_df = pd.read_csv(constants.DIRECTORY + "imdb-actor-info.csv")
 
 actor_movie_map = defaultdict(set)
 movie_actor_map = defaultdict(set)
@@ -52,7 +53,11 @@ tag_movie_map = defaultdict(list)
 user_rated_or_tagged_map = defaultdict(set)
 tag_id_map = dict()
 id_tag_map = dict()
+actor_actorid_map = defaultdict(str)
 
+def create_actor_actorid_map():
+    for row in actor_info_df.itertuples():
+        actor_actorid_map[row.id]=row.name
 
 def vectors():
 	global max_rank
