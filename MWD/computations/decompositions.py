@@ -6,6 +6,7 @@ import util.constants
 import gensim
 from gensim import corpora
 import numpy as np
+from sktensor import dtensor, cp_als
 
 def PCADecomposition(inputMatrix, n_components):
 	mat_std = StandardScaler().fit_transform(inputMatrix,inputMatrix.columns.values)
@@ -50,3 +51,10 @@ def LDADecomposition(inputMatrix, num_topics, passes):
     ldamodel = Lda(corpus, num_topics=num_topics, id2word = dictionaryFromCorpus, passes=passes)
     
     return ldamodel,corpus,id_Term_map
+
+def CPDecomposition(tensor,rank):
+    T = dtensor(tensor)
+    # Decompose tensor using CP-ALS
+    P, fit, itr, exectimes = cp_als(T, rank, init='random')
+    u=P.U
+    return u

@@ -6,6 +6,7 @@ import pandas as pd
 from collections import defaultdict
 from operator import itemgetter
 from util import constants
+import numpy as np
 
 DataHandler.vectors()
 
@@ -41,3 +42,41 @@ def top10_Actors_LDA(givenActor):
     print('Actors similar to '+str(DataHandler.actor_actorid_map[givenActor]))
     for actor,sim in top10SimilarActors_similarity:
         print(DataHandler.actor_actorid_map[actor]+' '+str(sim))
+        
+def top5LatentCP(tensorIdentifier, space):
+    if (tensorIdentifier == 'AMY'):
+        u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieYear(),constants.RANK)
+        if (space == 'Actor'):
+            actorRank = np.array(u[0])
+            print(actorRank.T)
+            return
+        if (space == 'Movie'):
+            movieRank = np.array(u[1])
+            print(movieRank.T)
+            return
+        if (space == 'Year'):
+            YearRank = np.array(u[0])
+            print(YearRank.T)
+            return
+        else:
+            print('Wrong Space')
+            return
+    if (tensorIdentifier == 'TMR'):
+        u = decompositions.CPDecomposition(DataHandler.getTensor_TagMovieRanking(),constants.RANK)
+        if (space == 'Tag'):
+            tagRank = np.array(u[0])
+            print(tagRank.T)
+            return
+        if (space == 'Movie'):
+            movieRank = np.array(u[1])
+            print(movieRank.T)
+            return
+        if (space == 'Ranking'):
+            RankingRank = np.array(u[0])
+            print(RankingRank.T)
+            return
+        else:
+            print('Wrong Space')
+            return
+    else:
+        print('Wrong Tensor Identifier')

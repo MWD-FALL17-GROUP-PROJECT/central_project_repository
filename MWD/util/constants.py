@@ -6,3 +6,4 @@ RANDOM_STATE = 42
 actorTagsSpacePasses = 250
 genreTagsSpacePasses = 100
 genreActorSpacePasses = 100
+RANK = 5
