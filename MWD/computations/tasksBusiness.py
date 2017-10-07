@@ -7,6 +7,8 @@ from collections import defaultdict
 from operator import itemgetter
 from util import constants
 import numpy as np
+from computations import metrics
+import operator
 
 DataHandler.vectors()
 
@@ -80,3 +82,27 @@ def top5LatentCP(tensorIdentifier, space):
             return
     else:
         print('Wrong Tensor Identifier')
+
+'''
+prints the top 10 actor names with their cosine similarity weight related to
+an input actor id based on top 5 underlying semantics
+Underlying decomposition for semantic extraction is SVD.
+Library used for decomposition is scikit-learn
+'''
+def actor_task1c_SVD(actor_id):
+    acdf = DataHandler.actor_tag_df()
+    indexList=list(acdf.index)
+    U, Sigma, VT = decompositions.SVDDecomposition(acdf, 5)
+    
+    simAndActor = []
+    for index in range(0, len(U)):
+        simAndActor.append((metrics.cosineSim(U[indexList.index(actor_id)], U[index]), indexList[index]))
+    
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=True)
+    resultNames = []
+    DataHandler.create_actor_actorid_map()    
+    for weightActorTuple in result:
+        if (weightActorTuple[1]!=actor_id):
+            resultNames.append((weightActorTuple[0], DataHandler.actor_actorid_map.get(weightActorTuple[1])))
+    print("Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are:")
+    print(resultNames[0:10])
