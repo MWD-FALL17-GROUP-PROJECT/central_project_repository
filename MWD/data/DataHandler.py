@@ -318,3 +318,49 @@ def getTensor_TagMovieRating():
         for tag,date in movie_tag_map.get(movie):
             tensor_TagMovieRating[tags.index(tag),movies.index(movie),range(math.ceil(movieAvgRating),r)] = 1
     return tensor_TagMovieRating
+
+def docSpecificCorpus(df,actorIndex):
+    import gensim
+    numpy_matrix = np.matrix(df.loc[actorIndex].as_matrix())
+    numpy_matrix_transpose = numpy_matrix.transpose()
+    corpus = gensim.matutils.Dense2Corpus(numpy_matrix_transpose)
+    return list(corpus)[0]
+
+def representDocInLDATopics(df,actorIndex,ldaModel):
+    actorInLDATopics = ldaModel[docSpecificCorpus(df,actorIndex)]
+    totalTopics = 4
+    CurTopics = zip(*actorInLDATopics)
+    CurTopics = list(CurTopics)
+    for i in range(0,totalTopics):
+            if(i not in CurTopics[0]):
+                actorInLDATopics.append(tuple((i,0)))
+    return actorInLDATopics
+
+def similarActors_LDA(givenActor):
+    createDictionaries1()
+    vectors()
+    givenActor_similarity = defaultdict(float)
+    actor_weight_vector_tf_idf = actor_tagVector()
+    tagList = sorted(list(tag_movie_map.keys()))
+    actorList = sorted(list(actor_movie_rank_map.keys()))
+    df = pd.DataFrame(columns=tagList)
+    dictList = []
+    for actor in actorList:
+        actor_tag_dict = dict.fromkeys(tagList,0.0)
+        for tag,weight in actor_weight_vector_tf_idf[actor]:
+            actor_tag_dict[tag] = weight
+        dictList.append(actor_tag_dict)
+    df = df.append(dictList,ignore_index=True)
+    t = time.time()
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,4,constants.actorTagsSpacePasses)
+    print('Query : ', time.time() - t)
+    for otherActor in actorList:
+        ac1 = representDocInLDATopics(df,actorList.index(givenActor),ldaModel)
+        if otherActor != givenActor:
+            ac2 = representDocInLDATopics(df,actorList.index(otherActor),ldaModel)
+            givenActor_similarity[otherActor]=(metrics.simlarity_kullback_leibler(ac1,ac2))
+    #print(sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=True))
+    top10 = sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=False)[0:11]
+    return top10
+
+
