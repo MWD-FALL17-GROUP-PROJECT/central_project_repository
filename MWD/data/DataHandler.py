@@ -33,6 +33,7 @@ tag_movie_df = pd.read_csv(constants.DIRECTORY + "mltags.csv")
 genre_movie_df = pd.read_csv(constants.DIRECTORY + "mlmovies.csv")
 tag_id_df = pd.read_csv(constants.DIRECTORY + "genome-tags.csv")
 user_ratings_df = pd.read_csv(constants.DIRECTORY + "mlratings.csv")
+actor_info_df = pd.read_csv(constants.DIRECTORY + "imdb-actor-info.csv")
 
 actor_movie_map = defaultdict(set)
 movie_actor_map = defaultdict(set)
@@ -52,7 +53,11 @@ tag_movie_map = defaultdict(list)
 user_rated_or_tagged_map = defaultdict(set)
 tag_id_map = dict()
 id_tag_map = dict()
+actor_actorid_map = defaultdict(str)
 
+def create_actor_actorid_map():
+    for row in actor_info_df.itertuples():
+        actor_actorid_map[row.id]=row.name
 
 def vectors():
 	global max_rank
@@ -313,3 +318,73 @@ def getTensor_TagMovieRating():
         for tag,date in movie_tag_map.get(movie):
             tensor_TagMovieRating[tags.index(tag),movies.index(movie),range(math.ceil(movieAvgRating),r)] = 1
     return tensor_TagMovieRating
+
+def docSpecificCorpus(df,actorIndex):
+    import gensim
+    numpy_matrix = np.matrix(df.loc[actorIndex].as_matrix())
+    numpy_matrix_transpose = numpy_matrix.transpose()
+    corpus = gensim.matutils.Dense2Corpus(numpy_matrix_transpose)
+    return list(corpus)[0]
+
+def representDocInLDATopics(df,actorIndex,ldaModel):
+    actorInLDATopics = ldaModel[docSpecificCorpus(df,actorIndex)]
+    totalTopics = 4
+    CurTopics = zip(*actorInLDATopics)
+    CurTopics = list(CurTopics)
+    for i in range(0,totalTopics):
+            if(i not in CurTopics[0]):
+                actorInLDATopics.append(tuple((i,0)))
+    return actorInLDATopics
+
+def similarActors_LDA(givenActor):
+    createDictionaries1()
+    vectors()
+    givenActor_similarity = defaultdict(float)
+    actor_weight_vector_tf_idf = actor_tagVector()
+    tagList = sorted(list(tag_movie_map.keys()))
+    actorList = sorted(list(actor_movie_rank_map.keys()))
+    df = pd.DataFrame(columns=tagList)
+    dictList = []
+    for actor in actorList:
+        actor_tag_dict = dict.fromkeys(tagList,0.0)
+        for tag,weight in actor_weight_vector_tf_idf[actor]:
+            actor_tag_dict[tag] = weight
+        dictList.append(actor_tag_dict)
+    df = df.append(dictList,ignore_index=True)
+    t = time.time()
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,4,constants.actorTagsSpacePasses)
+    print('Query : ', time.time() - t)
+    for otherActor in actorList:
+        ac1 = representDocInLDATopics(df,actorList.index(givenActor),ldaModel)
+        if otherActor != givenActor:
+            ac2 = representDocInLDATopics(df,actorList.index(otherActor),ldaModel)
+            givenActor_similarity[otherActor]=(metrics.simlarity_kullback_leibler(ac1,ac2))
+    #print(sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=True))
+    top10 = sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=False)[0:11]
+    return top10
+
+
+def load_movie_tag_df():
+    movieCount = movie_tag_map.keys().__len__()
+    createDictionaries1()
+
+    tagList = sorted(list(tag_movie_map.keys()))
+    movieList = []
+    df = pd.DataFrame(columns=tagList)
+    for movie in movie_tag_map.keys():
+        tagsInMovie = movie_tag_map[movie]
+        tf_idf_map = dict()
+        if tagsInMovie:
+            movieList.append(movie)
+            for tag in tagList:
+                moviesInTagCount = len(tag_movie_map[tag])
+                tf_numerator = 0
+                for temp_movie, datetime in tag_movie_map[tag]:
+                    if movie == temp_movie:
+                        tf_numerator += formatter.normalizer(min_date, max_date, datetime)
+                tf = tf_numerator / len(tagsInMovie)
+                tf_idf = tf * math.log2(movieCount / moviesInTagCount)
+                tf_idf_map[tag] = tf_idf
+            df = df.append(tf_idf_map, ignore_index=True)
+    df.index = movieList
+    return df      

@@ -6,6 +6,7 @@ import util.constants
 import gensim
 from gensim import corpora
 import numpy as np
+from sktensor import dtensor, cp_als
 
 def PCADecomposition(inputMatrix, n_components):
 	mat_std = StandardScaler().fit_transform(inputMatrix,inputMatrix.columns.values)
@@ -33,7 +34,7 @@ def SVDDecomposition(inputMatrix, n_components):
                               random_state=util.constants.RANDOM_STATE)
     return U, Sigma, VT
 
-def LDADecomposition(inputMatrix, num_topics):
+def LDADecomposition(inputMatrix, num_topics, passes):
     #Removing all the zero columns
     df = inputMatrix.loc[:, (inputMatrix != 0).any(axis=0)]
     
@@ -47,6 +48,13 @@ def LDADecomposition(inputMatrix, num_topics):
     dictionaryFromCorpus = corpora.Dictionary.from_corpus(corpus)
     
     Lda = gensim.models.ldamodel.LdaModel
-    ldamodel = Lda(corpus, num_topics=num_topics, id2word = dictionaryFromCorpus, passes=50)
+    ldamodel = Lda(corpus, num_topics=num_topics, id2word = dictionaryFromCorpus, passes=passes)
     
     return ldamodel,corpus,id_Term_map
+
+def CPDecomposition(tensor,rank):
+    T = dtensor(tensor)
+    # Decompose tensor using CP-ALS
+    P, fit, itr, exectimes = cp_als(T, rank, init='random')
+    u=P.U
+    return u
