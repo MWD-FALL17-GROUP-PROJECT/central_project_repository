@@ -184,6 +184,35 @@ def load_genre_actor_matrix(given_genre):
 	df.index = movieList
 	return df
 
+
+def actor_actor_similarity_matrix():
+	actor_tag_map = actor_tagVector()
+	dfList = []
+	actorList = sorted(list(actor_tag_map.keys()))
+	for actor1 in actorList:
+		actorMap = dict.fromkeys(actorList, 0.0)
+		for actor2 in actorList:
+			vec1 = dict(actor_tag_map[actor1])
+			vec2 = dict(actor_tag_map[actor2])
+			actorMap[actor2] = metrics.euclidean(vec1, vec2)
+		# df.at[actor1,actor2] = metrics.euclidean(vec1,vec2)
+		dfList.append(actorMap)
+	return pd.DataFrame(dfList, columns=actorList, index=actorList)
+
+
+def coactor_siilarity_matrix():
+	createDictionaries1()
+	dfList = []
+	actorList = sorted(list(actor_movie_rank_map.keys()))
+	for actor1 in actorList:
+		actorMap = dict.fromkeys(actorList, 0.0)
+		for actor2 in actorList:
+			co_star_movie_set = set.intersection(actor_movie_rank_map[actor1], actor_movie_rank_map[actor2])
+			actorMap[actor2] = co_star_movie_set.__len__()
+		dfList.append(actorMap)
+	return pd.DataFrame(dfList, columns=actorList, index=actorList)
+
+
 def actor_tag_df():
 	actor_weight_vector_tf_idf = actor_tagVector()
 	tagList = sorted(list(tag_movie_map.keys()))
