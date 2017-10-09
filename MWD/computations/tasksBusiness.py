@@ -121,7 +121,7 @@ def task1dImplementation_SVD(movie_id):
     actorU, actorSigma, actorV = decompositions.SVDDecomposition(actor_tag_df, 5)
     movieU, movieSigma, movieV = decompositions.SVDDecomposition(movie_tag_df, 5)
 
-    
+    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
     movieSemanticsToActorSemanticsMapping = np.matrix(movieV) * np.matrix(actorV.transpose())
     movieInMovieSemantics = np.matrix(movieU[moviesIndexList.index(movie_id)])
     movieInActorSemanticsMatrix = movieInMovieSemantics * movieSemanticsToActorSemanticsMapping
@@ -184,7 +184,6 @@ def task1c_pca(actor_id):
     print(result[0:10])
     return
 
-
 def PPR_top10_SimilarActors(seed):
     DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
@@ -222,4 +221,51 @@ def top5SimilarMovies(userMovies):
     for index,sim in movie_similarities:
         if (movie_movie_similarity.columns[index] not in userMovies):
             print(movieid_name_map.get(movie_movie_similarity.columns[index])+' '+ str(sim))
-            
+
+def task1d_pca(movie_id):
+    DataHandler.vectors()
+    actor_tag_df = DataHandler.actor_tag_df()
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    
+    actorTagMatrix = np.matrix(actor_tag_df.as_matrix())
+    movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
+    
+    actorIndexList = list(actor_tag_df.index)
+    movieIndexList = list(movie_tag_df.index)
+    
+    actorSemantics = decompositions.PCADecomposition(actor_tag_df, 5)
+    movieSemantics = decompositions.PCADecomposition(movie_tag_df, 5)
+    
+    actorP = np.matrix(actorSemantics).transpose()
+    movieP = np.matrix(movieSemantics).transpose()
+    
+    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
+    movieSemanticsToActorSemantics = np.matrix(movieSemantics) * actorP
+    moviesInMovieSemantics = movieTagMatrix * movieP
+    movieInMovieSemantics =  moviesInMovieSemantics[movieIndexList.index(movie_id)]
+    movieInActorSemantics = (movieInMovieSemantics * movieSemanticsToActorSemantics).tolist()[0]
+    
+    actorsInActorSemantics = (actorTagMatrix * actorP).tolist()
+    
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    actorsForMovie = DataHandler.movie_actor_map.get(movie_id)
+    
+    DataHandler.create_actor_actorid_map()
+    actorsSize = len(actorsInActorSemantics)
+    simAndActor = []
+    for index in range(0, actorsSize):
+        actorId = actorIndexList[index]
+        if (actorId in actorsForMovie):
+            continue
+        actorInSemantics = actorsInActorSemantics[index]
+        actorName = DataHandler.actor_actorid_map.get(actorId)
+        score = metrics.l2Norm(actorInSemantics, movieInActorSemantics)
+        simAndActor.append((score, actorName))
+    
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    print("10 actos similar to movie: " + str(movie_id) + "are: ")
+    print(result[0:10])
+    return
+    
