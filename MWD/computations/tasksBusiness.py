@@ -90,6 +90,7 @@ Underlying decomposition for semantic extraction is SVD.
 Library used for decomposition is scikit-learn
 '''
 def actor_task1c_SVD(actor_id):
+    DataHandler.vectors()
     acdf = DataHandler.actor_tag_df()
     indexList=list(acdf.index)
     U, Sigma, VT = decompositions.SVDDecomposition(acdf, 5)
@@ -145,4 +146,40 @@ def task1dImplementation_SVD(movie_id):
     resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=True)
     print("10 Actors similar to movie " + str(movie_id) + " are: ")
     print(resultActors[0:10])
+    return
+
+'''
+prints the top 10 actos related to the given actor
+Result is printed as a list of score, actor name pairs
+Underlying decompositon to extract semantics is PCA
+'''
+def task1c_pca(actor_id):
+    DataHandler.vectors()
+    actorTagDataframe = DataHandler.actor_tag_df()
+    actorTagMatrix = np.matrix(DataHandler.actor_tag_df().as_matrix())
+    
+    actorIndexList = list(actorTagDataframe.index)
+    
+    components = decompositions.PCADecomposition(actorTagDataframe, 5)
+    
+    #using transpose since according to page 158, p inverse = p transpose
+    pMatrix = np.matrix(components).transpose()
+    actorsInSemantics = (actorTagMatrix * pMatrix).tolist()
+    
+    simAndActor = [] 
+    concernedActorInSemantics = actorsInSemantics[actorIndexList.index(actor_id)] 
+    DataHandler.create_actor_actorid_map()
+    
+    for index in range(0, len(actorsInSemantics)):
+        comparisonActorId = actorIndexList[index]
+        if (actor_id == comparisonActorId):
+            continue
+        comparisonActorSemantics = actorsInSemantics[index]
+        comparisonActorName = DataHandler.actor_actorid_map.get(comparisonActorId)
+        simAndActor.append((metrics.l2Norm(concernedActorInSemantics, comparisonActorSemantics), comparisonActorName))
+    
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    print("10 Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
+    print(result[0:10])
     return

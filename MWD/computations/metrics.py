@@ -27,3 +27,13 @@ def cosineSim(vec1, vec2):
         magv1 = magv1 + vec1[i]*vec1[i]
         magv2 = magv2 + vec2[i]*vec2[i]
     return cos/(math.sqrt(magv1*magv2))
+
+'''
+Takes in two vectors as lists and assumes the length of the vectors is the same.
+returns the l2 Norm between the two vectors.
+'''
+def l2Norm(vec1, vec2):
+    product = 0
+    for i in range(0, len(vec1)):
+        product = product + (vec1[i] - vec2[i])*(vec1[i] - vec2[i])
+    return math.sqrt(product)
