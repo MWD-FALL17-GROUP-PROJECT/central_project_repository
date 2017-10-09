@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from computations import decompositions
+from computations import decompositions,pagerank
 from data import DataHandler
 import pandas as pd
 from collections import defaultdict
@@ -183,3 +183,26 @@ def task1c_pca(actor_id):
     print("10 Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
     print(result[0:10])
     return
+
+
+def PPR_top10_SimilarActors(seed):
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    actact = DataHandler.actor_actor_similarity_matrix()
+    actor_actorid_map = DataHandler.actor_actorid_map
+    alpha = constants.ALPHA
+    act_similarities = pagerank.PPR(actact,seed,alpha)
+    print('Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
+    for index,sim in act_similarities:
+        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
+        
+def PPR_top10_SimilarCoActors(seed):
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    actact = DataHandler.actor_actor_similarity_matrix()
+    actor_actorid_map = DataHandler.actor_actorid_map
+    alpha = constants.ALPHA
+    act_similarities = pagerank.PPR(actact,seed,alpha)
+    print('Co Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
+    for index,sim in act_similarities.items():
+        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
