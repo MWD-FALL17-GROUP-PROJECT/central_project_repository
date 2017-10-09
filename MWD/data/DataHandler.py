@@ -145,7 +145,7 @@ def load_genre_matrix(given_genre):
 			for tag in tagList:
 				moviesInTagCount = len(tag_movie_map[tag])
 				tf_numerator = 0
- 				for temp_movie, datetime in tag_movie_map[tag]:
+				for temp_movie, datetime in tag_movie_map[tag]:
 					if movie == temp_movie:
 						tf_numerator += formatter.normalizer(min_date, max_date, datetime)
 				tf = tf_numerator / len(tagsInMovie)
