@@ -41,7 +41,7 @@ movie_year_map = defaultdict(int)
 year_movie_map = defaultdict(int)
 movie_ratings_map = defaultdict(list)
 uniqueRatings = set()
-
+uniqueRanks = set()
 actor_movie_rank_map = defaultdict(set)
 movie_actor_rank_map = defaultdict(set)
 movie_tag_map = defaultdict(set)
@@ -54,7 +54,8 @@ user_rated_or_tagged_map = defaultdict(set)
 tag_id_map = dict()
 id_tag_map = dict()
 actor_actorid_map = defaultdict(str)
-
+movie_genre_map = defaultdict(set)
+movieid_name_map = defaultdict()
 def create_actor_actorid_map():
     for row in actor_info_df.itertuples():
         actor_actorid_map[row.id]=row.name
@@ -73,7 +74,8 @@ def vectors():
 
 	for row in user_ratings_df.itertuples():
 		user_rated_or_tagged_map[row.userid].add(row.movieid)
-
+         
+            
 	tagset = set()
 
 	for row in tag_movie_df.itertuples():
@@ -108,14 +110,16 @@ def createDictionaries1():
         movie_actor_rank_map[row.movieid].add((row.actorid, row.actor_movie_rank))
         actor_movie_map[row.actorid].add((row.movieid))
         movie_actor_map[row.movieid].add((row.actorid))
+        uniqueRanks.add(row.actor_movie_rank)
     
     for row in genre_movie_df.itertuples():
         genres_list = row.genres.split("|")
         for genre in genres_list:
             genre_movie_map[genre].add(row.movieid)
+            movie_genre_map[row.movieid].add(genre)
         movie_year_map[row.movieid]=row.year
         year_movie_map[row.year]=row.movieid
-        
+        movieid_name_map[row.movieid]=row.moviename
     for row in user_ratings_df.itertuples():
         movie_ratings_map[row.movieid].append(row.rating)
         uniqueRatings.add(row.rating)
@@ -416,4 +420,80 @@ def load_movie_tag_df():
                 tf_idf_map[tag] = tf_idf
             df = df.append(tf_idf_map, ignore_index=True)
     df.index = movieList
-    return df      
+    return df    
+
+def movie_movie_Similarity(movie_tag_df):
+    movies = movie_tag_df.index
+    dfList = []
+    for movie1 in movies:
+        movieMap = dict.fromkeys(movies, 0.0)
+        for movie2 in movies:
+            vec1 = dict(zip(movie_tag_df.loc[movie1].index,movie_tag_df.loc[movie1]))
+            vec2 = dict(zip(movie_tag_df.loc[movie2].index,movie_tag_df.loc[movie2]))
+            movieMap[movie2] = metrics.euclidean(vec1, vec2)
+        dfList.append(movieMap)
+    return pd.DataFrame(dfList, columns=movies, index=movies)
+
+def getTensor_ActorMovieGenreYear():
+    createDictionaries1()
+    actors = sorted(list(actor_movie_map.keys()))
+    movies = sorted(list(movie_actor_map.keys()))
+    genres = sorted(list(genre_movie_map.keys()))
+    years = sorted(list(year_movie_map.keys()))
+    a = len(actors)
+    m = len(movies)
+    g = len(genres)
+    y = len(years)
+    tensor_ActorMovieGenreYear = np.zeros(a*m*g*y).reshape(a,m,g,y)
+    for actor in actors:
+        for movie,rank in actor_movie_rank_map.get(actor):
+            ratings = movie_ratings_map.get(movie)
+            avgRating = sum(ratings)/len(ratings)
+            genreMovie = movie_genre_map.get(movie)
+            weight = avgRating/rank
+            for genre in genreMovie:
+                tensor_ActorMovieGenreYear[actors.index(actor),movies.index(movie),genres.index(genre),years.index(movie_year_map.get(movie))] = 1#weight
+    return tensor_ActorMovieGenreYear
+
+def getTensor_ActorMovieGenre():
+    createDictionaries1()
+    actors = sorted(list(actor_movie_map.keys()))
+    movies = sorted(list(movie_actor_map.keys()))
+    genres = sorted(list(genre_movie_map.keys()))
+    a = len(actors)
+    m = len(movies)
+    g = len(genres)
+    tensor_ActorMovieGenreYear = np.zeros(a*m*g).reshape(a,m,g)
+    for actor in actors:
+        for movie,rank in actor_movie_rank_map.get(actor):
+            ratings = movie_ratings_map.get(movie)
+            avgRating = sum(ratings)/len(ratings)
+            genreMovie = movie_genre_map.get(movie)
+            weight = avgRating/rank
+            for genre in genreMovie:
+                tensor_ActorMovieGenreYear[actors.index(actor),movies.index(movie),genres.index(genre)] = 1#weight
+    return tensor_ActorMovieGenreYear
+
+def getTensor_ActorMovieGenreYearRankRating():
+    createDictionaries1()
+    actors = sorted(list(actor_movie_map.keys()))
+    movies = sorted(list(movie_actor_map.keys()))
+    genres = sorted(list(genre_movie_map.keys()))
+    years = sorted(list(year_movie_map.keys()))
+    ranks = list(uniqueRanks)
+    ratings = list(uniqueRatings)
+    a = len(actors)
+    m = len(movies)
+    g = len(genres)
+    y = len(years)
+    rk = len(ranks)
+    rt = len(ratings)
+    tensor_ActorMovieGenreYearRankRating = np.zeros(a*m*g*y*rk*rt).reshape(a,m,g,y,rk,rt)
+    for actor in actors:
+        for movie,rank in actor_movie_rank_map.get(actor):
+            ratings = movie_ratings_map.get(movie)
+            avgRating = sum(ratings)/len(ratings)
+            genreMovie = movie_genre_map.get(movie)
+            for genre in genreMovie:
+                tensor_ActorMovieGenreYearRankRating[actors.index(actor),movies.index(movie),genres.index(genre),years.index(movie_year_map.get(movie)),ranks.index(rank),range(math.ceil(avgRating),rt)] = 1
+    return tensor_ActorMovieGenreYearRankRating

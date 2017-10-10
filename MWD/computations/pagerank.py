@@ -9,7 +9,8 @@ def PPR(similaritDataframe,seed,alpha):
     G=nx.from_numpy_matrix(A)
     prob = 1/len(seed)
     actors = list(similaritDataframe.index)
-    seed = [actors.index(i) for i in seed]
+    seed = [check(i,seed,actors) for i in seed]
+    seed = list(filter(None, seed))
     personalization_map = defaultdict()
     for i in range(0,len(similaritDataframe)):
         if i in seed:
@@ -19,5 +20,10 @@ def PPR(similaritDataframe,seed,alpha):
     pr = nx.pagerank(G, alpha=alpha,personalization=personalization_map)  
     return sorted(pr.items(),key = itemgetter(1),reverse=True)[0:11]
 
-
 #seed = {17838,61523}
+
+def check(i,seed,actors):
+    if i in actors:
+        return actors.index(i)
+    else:
+        return []
