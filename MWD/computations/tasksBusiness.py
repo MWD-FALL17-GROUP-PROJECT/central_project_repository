@@ -96,17 +96,19 @@ def actor_task1c_SVD(actor_id):
     U, Sigma, VT = decompositions.SVDDecomposition(acdf, 5)
     
     simAndActor = []
+    actorInSemantics = U[indexList.index(actor_id)]
+    DataHandler.create_actor_actorid_map()
     for index in range(0, len(U)):
-        simAndActor.append((metrics.cosineSim(U[indexList.index(actor_id)], U[index]), indexList[index]))
+        comparisonActorId = indexList[index]
+        if (comparisonActorId == actor_id):
+            continue
+        actorName = DataHandler.actor_actorid_map.get(comparisonActorId)
+        similarityScore = metrics.l2Norm(actorInSemantics, U[index])
+        simAndActor.append((similarityScore, actorName))
     
-    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=True)
-    resultNames = []
-    DataHandler.create_actor_actorid_map()    
-    for weightActorTuple in result:
-        if (weightActorTuple[1]!=actor_id):
-            resultNames.append((weightActorTuple[0], DataHandler.actor_actorid_map.get(weightActorTuple[1])))
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
     print("Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are:")
-    print(resultNames[0:10])
+    print(result[0:10])
     return
 
 def task1dImplementation_SVD(movie_id):
@@ -142,8 +144,9 @@ def task1dImplementation_SVD(movie_id):
         actorMatrix = actorsInSemantics[index]
         actor = (actorMatrix.tolist())[0]
         actorName = DataHandler.actor_actorid_map.get(actor_id)
-        actorsWithScores.append((metrics.cosineSim(actor, movieInActorSemantics), actorName))
-    resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=True)
+        similarityScore = metrics.l2Norm(actor, movieInActorSemantics)
+        actorsWithScores.append((similarityScore, actorName))
+    resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=False)
     print("10 Actors similar to movie " + str(movie_id) + " are: ")
     print(resultActors[0:10])
     return
