@@ -107,12 +107,17 @@ def actor_task1c_SVD(actor_id):
         simAndActor.append((similarityScore, actorName))
     
     result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
-    print("Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are:")
+    print("Top 10 Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are:")
+    top10Actors = result[0:10]
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
     print(result[0:10])
     return
 
 def task1dImplementation_SVD(movie_id):
     DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
     actor_tag_df = DataHandler.actor_tag_df()
     movie_tag_df = DataHandler.load_movie_tag_df()
     
@@ -133,7 +138,6 @@ def task1dImplementation_SVD(movie_id):
     
     actorsWithScores = []
     
-    DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
     actorsForMovie = DataHandler.movie_actor_map.get(movie_id)    
     
@@ -146,9 +150,13 @@ def task1dImplementation_SVD(movie_id):
         actorName = DataHandler.actor_actorid_map.get(actor_id)
         similarityScore = metrics.l2Norm(actor, movieInActorSemantics)
         actorsWithScores.append((similarityScore, actorName))
+    
     resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=False)
-    print("10 Actors similar to movie " + str(movie_id) + " are: ")
-    print(resultActors[0:10])
+    top10Actors = resultActors[0:10]
+    movieid_name_map = DataHandler.movieid_name_map
+    print("10 Actors similar to movie " + str(movieid_name_map.get(movie_id)) + " are: ")
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
     return
 
 '''
@@ -183,8 +191,10 @@ def task1c_pca(actor_id):
     
     result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
     
-    print("10 Actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
-    print(result[0:10])
+    top10Actors = result[0:10]
+    print("Top 10 actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
     return
 
 def PPR_top10_SimilarActors(seed):
@@ -194,7 +204,7 @@ def PPR_top10_SimilarActors(seed):
     actor_actorid_map = DataHandler.actor_actorid_map
     alpha = constants.ALPHA
     act_similarities = pagerank.PPR(actact,seed,alpha)
-    print('Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
+    print('Top 10 actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
     for index,sim in act_similarities:
         print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
         
@@ -227,6 +237,8 @@ def top5SimilarMovies(userMovies):
 
 def task1d_pca(movie_id):
     DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
     actor_tag_df = DataHandler.actor_tag_df()
     movie_tag_df = DataHandler.load_movie_tag_df()
     
@@ -250,7 +262,6 @@ def task1d_pca(movie_id):
     
     actorsInActorSemantics = (actorTagMatrix * actorP).tolist()
     
-    DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
     actorsForMovie = DataHandler.movie_actor_map.get(movie_id)
     
@@ -268,7 +279,9 @@ def task1d_pca(movie_id):
     
     result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
     
-    print("10 actos similar to movie: " + str(movie_id) + "are: ")
-    print(result[0:10])
+    movieid_name_map = DataHandler.movieid_name_map
+    print("Top 10 actors similar to movie: " + str(movieid_name_map.get(movie_id)) + " are: ")
+    top10Actors = result[0:10]
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
     return
-    
