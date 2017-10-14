@@ -9,7 +9,7 @@ from util import constants
 import numpy as np
 from computations import metrics
 import operator
-
+from computations import personalizedpagerank as ppr
 DataHandler.vectors()
 
 def genre_spaceTags_LDA(genre):
@@ -285,3 +285,106 @@ def task1d_pca(movie_id):
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
     return
+	
+def PersnalizedPageRank_top10_SimilarActors(seed):
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    actact = DataHandler.actor_actor_similarity_matrix()
+    actor_actorid_map = DataHandler.actor_actorid_map
+    alpha = constants.ALPHA
+    act_similarities = ppr.personalizedPageRank(actact,seed,alpha)
+    actors = list(actact.index)
+    actorDF = pd.DataFrame(pd.Series(actors),columns = ['Actor'])
+    actorDF['Actor'] = actorDF['Actor'].map(lambda x:actor_actorid_map.get(x))
+    Result = pd.concat([act_similarities,actorDF],axis = 1)
+    sortedResult=Result.sort_values(by=0,ascending=False).head(15)
+    seedAcotorNames = [actor_actorid_map.get(i) for i in seed]
+    print('Actors similar to the following seed actors: '+str(seedAcotorNames))
+    for index in sortedResult.index:
+        if sortedResult.loc[index,'Actor'] not in seedAcotorNames:
+            print(sortedResult.loc[index,'Actor']+' '+ str(sortedResult.loc[index,0]))
+        
+def PersnalizedPageRank_top10_SimilarCoActors(seed):
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
+    coactcoact = DataHandler.coactor_siilarity_matrix()
+    actor_actorid_map = DataHandler.actor_actorid_map
+    alpha = constants.ALPHA
+    act_similarities = ppr.PPpersonalizedPageRankR(coactcoact,seed,alpha)
+    actors = list(coactcoact.index)
+    actorDF = pd.DataFrame(pd.Series(actors),columns = ['Actor'])
+    actorDF['Actor'] = actorDF['Actor'].map(lambda x:actor_actorid_map.get(x))
+    Result = pd.concat([act_similarities,actorDF],axis = 1)
+    sortedResult=Result.sort_values(by=0,ascending=False).head(15)
+    seedAcotorNames = [actor_actorid_map.get(i) for i in seed]
+    print('Co Actors similar to the following seed actors: '+str(seedAcotorNames))
+    for index in sortedResult.index:
+        if sortedResult.loc[index,'Actor'] not in seedAcotorNames:
+            print(sortedResult.loc[index,'Actor']+' '+ str(sortedResult.loc[index,0]))
+
+#userMovies = user_rated_or_tagged_map.get(67348)
+#userMovies = user_rated_or_tagged_map.get(3)
+def PersnalizedPageRank_top5SimilarMovies(userMovies):
+    DataHandler.createDictionaries1()
+    u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenreYearRankRating(),5)
+    movies = sorted(list(DataHandler.movie_actor_map.keys()))
+    u1= u[1]
+    movieNewDSpace = pd.DataFrame(u1,index = movies)
+    movie_movie_similarity = DataHandler.movie_movie_Similarity(movieNewDSpace)
+    movieid_name_map = DataHandler.movieid_name_map
+    alpha = constants.ALPHA
+    movie_similarities = ppr.personalizedPageRank(movie_movie_similarity,userMovies,alpha)
+    movies = list(movie_movie_similarity.index)
+    movieDF = pd.DataFrame(pd.Series(movies),columns = ['movies'])
+    movieDF['movies'] = movieDF['movies'].map(lambda x:movieid_name_map.get(x))
+    Result = pd.concat([movie_similarities,movieDF],axis = 1)
+    sortedResult=Result.sort_values(by=0,ascending=False).head(15)
+    seedmovieNames = [movieid_name_map.get(i) for i in userMovies]
+    print('Movies similar to the following seed movies: '+str(seedmovieNames))
+    movie_genre_map = DataHandler.movie_genre_map
+    genreForSeedMovies = [movie_genre_map.get(i) for i in userMovies]    
+    print('Genres for seed movies: '+str(genreForSeedMovies))
+    for index in sortedResult.index:
+        if sortedResult.loc[index,'movies'] not in seedmovieNames:
+            print(sortedResult.loc[index,'movies']+' '+ str(sortedResult.loc[index,0])+' '+str(movie_genre_map.get(movies[index])))
+
+
+def top5SimilarMovies1(userMovies):
+    DataHandler.createDictionaries1()
+    u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenreYearRankRating(),5)
+    movies = sorted(list(DataHandler.movie_actor_map.keys()))
+    u1= u[1]
+    movieNewDSpace = pd.DataFrame(u1,index = movies)
+    movie_movie_similarity = DataHandler.movie_movie_Similarity1(movieNewDSpace)
+    movieid_name_map = DataHandler.movieid_name_map
+    alpha = constants.ALPHA
+    movie_similarities = pagerank.PPR(movie_movie_similarity,userMovies,alpha)
+    print('Movies similar to the following seed movies: '+str([movieid_name_map.get(i) for i in userMovies]))
+    for index,sim in movie_similarities:
+        if (movie_movie_similarity.columns[index] not in userMovies):
+            print(movieid_name_map.get(movie_movie_similarity.columns[index])+' '+ str(sim))
+
+            
+def PersnalizedPageRank_top5SimilarMovies1(userMovies):
+    DataHandler.createDictionaries1()
+    u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenreYearRankRating(),5)
+    movies = sorted(list(DataHandler.movie_actor_map.keys()))
+    u1= u[1]
+    movieNewDSpace = pd.DataFrame(u1,index = movies)
+    movie_movie_similarity = DataHandler.movie_movie_Similarity1(movieNewDSpace)
+    movieid_name_map = DataHandler.movieid_name_map
+    alpha = constants.ALPHA
+    movie_similarities = ppr.personalizedPageRank(movie_movie_similarity,userMovies,alpha)
+    movies = list(movie_movie_similarity.index)
+    movieDF = pd.DataFrame(pd.Series(movies),columns = ['movies'])
+    movieDF['movies'] = movieDF['movies'].map(lambda x:movieid_name_map.get(x))
+    Result = pd.concat([movie_similarities,movieDF],axis = 1)
+    sortedResult=Result.sort_values(by=0,ascending=False).head(15)
+    seedmovieNames = [movieid_name_map.get(i) for i in userMovies]
+    print('Movies similar to the following seed movies: '+str(seedmovieNames))
+    movie_genre_map = DataHandler.movie_genre_map
+    genreForSeedMovies = [movie_genre_map.get(i) for i in userMovies]    
+    print('Genres for seed movies: '+str(genreForSeedMovies))
+    for index in sortedResult.index:
+        if sortedResult.loc[index,'movies'] not in seedmovieNames:
+            print(sortedResult.loc[index,'movies']+' '+ str(sortedResult.loc[index,0])+' '+str(movie_genre_map.get(movies[index])))

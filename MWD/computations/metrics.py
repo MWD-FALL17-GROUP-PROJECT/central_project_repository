@@ -14,6 +14,11 @@ def euclidean(vec1,vec2):
 def simlarity_kullback_leibler(lda_vec1,lda_vec2):
     return kullback_leibler(lda_vec1,lda_vec2)
 
+
+def euclideanDistance(vec1,vec2):
+    union_feature = set.union(set(vec1.keys()), set(vec2.keys()))
+    return sum(list(map(lambda x: (vec2.get(x,0.0) - vec1.get(x,0.0))**2,union_feature)))**0.5
+
 '''
 Takes in two vectors as lists and assumes the length of the vectors is the same.
 returns cosine similarity between the two vectors as a float value.

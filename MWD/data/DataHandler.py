@@ -434,6 +434,18 @@ def movie_movie_Similarity(movie_tag_df):
         dfList.append(movieMap)
     return pd.DataFrame(dfList, columns=movies, index=movies)
 
+def movie_movie_Similarity1(movie_tag_df):
+    movies = movie_tag_df.index
+    dfList = []
+    for movie1 in movies:
+        movieMap = dict.fromkeys(movies, 0.0)
+        for movie2 in movies:
+            vec1 = dict(zip(movie_tag_df.loc[movie1].index,movie_tag_df.loc[movie1]))
+            vec2 = dict(zip(movie_tag_df.loc[movie2].index,movie_tag_df.loc[movie2]))
+            movieMap[movie2] = metrics.euclideanDistance(vec1, vec2)
+        dfList.append(movieMap)
+    return pd.DataFrame(dfList, columns=movies, index=movies)
+
 def getTensor_ActorMovieGenreYear():
     createDictionaries1()
     actors = sorted(list(actor_movie_map.keys()))
