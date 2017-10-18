@@ -95,6 +95,17 @@ def vectors():
 	tagset.clear()
 	print('Main : ', time.time() - t)
 
+def getGenreMoviesMap():
+    genre_movies_map = {}
+    for row in genre_movie_df.itertuples():
+        genres_list = row.genres.split("|")
+        for genre in genres_list:
+            if (genre in genre_movies_map.keys()):
+                genre_movies_map[genre].append(row.movieid)
+            else:
+                genre_movies_map[genre] = [row.movieid]
+    return genre_movies_map
+
 def createDictionaries1():
     global max_rank
     global min_rank

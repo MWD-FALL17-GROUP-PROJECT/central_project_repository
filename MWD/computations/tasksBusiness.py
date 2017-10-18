@@ -388,3 +388,51 @@ def PersnalizedPageRank_top5SimilarMovies1(userMovies):
     for index in sortedResult.index:
         if sortedResult.loc[index,'movies'] not in seedmovieNames:
             print(sortedResult.loc[index,'movies']+' '+ str(sortedResult.loc[index,0])+' '+str(movie_genre_map.get(movies[index])))
+
+def task1a_svd(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    genre_movie_map = DataHandler.getGenreMoviesMap()
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    tagIdTagsDf = DataHandler.tag_id_df
+    
+    movies = genre_movie_map.get(genre)
+    genre_movie_tags_df = (movie_tag_df.loc[movies]).dropna(how='any')
+    U, Sigma, genre_semantics = decompositions.SVDDecomposition(genre_movie_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ", end="")
+        prettyPrintTagVector(semantic, tagIdTagsDf)
+        print("")
+        index = index + 1
+    return
+
+def task1a_pca(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    genre_movie_map = DataHandler.genre_movie_map
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    tagIdTagsDf = DataHandler.tag_id_df
+    
+    
+    movies = genre_movie_map.get(genre)
+    genre_movie_tags_df = (movie_tag_df.loc[movies]).dropna(how='any')
+    genre_semantics = decompositions.PCADecomposition(genre_movie_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ", end="")
+        prettyPrintTagVector(semantic, tagIdTagsDf)
+        index = index + 1
+    return
+
+def prettyPrintTagVector(vector, tagIdTagsDf):
+    vectorLen = len(vector)
+    for index in range(0,vectorLen):
+        print(tagIdTagsDf.iloc[index][1] + ':' + str(vector[index]), end=' ')
+    print('.')
