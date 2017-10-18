@@ -414,7 +414,7 @@ def task1a_pca(genre):
     DataHandler.vectors()
     DataHandler.createDictionaries1()
     
-    genre_movie_map = DataHandler.genre_movie_map
+    genre_movie_map = DataHandler.getGenreMoviesMap()
     movie_tag_df = DataHandler.load_movie_tag_df()
     tagIdTagsDf = DataHandler.tag_id_df
     
