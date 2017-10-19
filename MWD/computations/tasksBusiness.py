@@ -194,6 +194,35 @@ def task1c_pca(actor_id):
         print(tup[1] + " : " + str(tup[0]))
     return
 
+def task1c_tfidf(actor_id):
+    DataHandler.vectors()
+    actorTagDataframe = DataHandler.actor_tag_df()
+    actorsTags = np.matrix(actorTagDataframe.as_matrix()).tolist()
+    actorIndexList = list(actorTagDataframe.index)
+    
+    simAndActor = []
+    concernedActor = actorsTags[actorIndexList.index(actor_id)]
+    totalActors = len(actorIndexList)
+    DataHandler.create_actor_actorid_map()
+    
+    for index in range(0, totalActors):
+        comparisonActorId = actorIndexList[index]
+        if(actor_id == comparisonActorId):
+            continue
+        comparisonActorName = DataHandler.actor_actorid_map.get(comparisonActorId)
+        comparisonActor = actorsTags[index]
+        comparisonScore = metrics.l2Norm(concernedActor, comparisonActor)
+        simAndActor.append((comparisonScore, comparisonActorName))
+        
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    top10Actors = result[0:10]
+    print("Top 10 actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
+    return
+        
+
 def PPR_top10_SimilarActors(seed):
     DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
@@ -272,6 +301,38 @@ def task1d_pca(movie_id):
     movieid_name_map = DataHandler.movieid_name_map
     print("Top 10 actors similar to movie: " + str(movieid_name_map.get(movie_id)) + " are: ")
     top10Actors = result[0:10]
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
+    return
+
+def task1d_tfidf(movie_id):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    actorTagDataframe = DataHandler.actor_tag_df()
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    
+    actorsTags = np.matrix(actorTagDataframe.as_matrix()).tolist()
+    actorIndexList = list(actorTagDataframe.index)
+    movieIndexList = list(movie_tag_df.index)
+    movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
+    
+    simAndActor = []
+    movieInTags = movieTagMatrix[movieIndexList.index(movie_id)].tolist()[0]
+    totalActors = len(actorIndexList)
+    DataHandler.create_actor_actorid_map()
+    
+    for index in range(0, totalActors):
+        actorId = actorIndexList[index]
+        actorName = DataHandler.actor_actorid_map.get(actorId)
+        actorinTags = actorsTags[index]
+        comparisonScore = metrics.l2Norm(movieInTags, actorinTags)
+        simAndActor.append((comparisonScore, actorName))
+        
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    top10Actors = result[0:10]
+    movieid_name_map = DataHandler.movieid_name_map
+    print("Top 10 actors similar to " + str(movieid_name_map.get(movie_id)) + " are: ")
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
     return
