@@ -126,14 +126,11 @@ def task1dImplementation_SVD(movie_id):
     actorsSize = len(actorsIndexList)
     
     actorU, actorSigma, actorV = decompositions.SVDDecomposition(actor_tag_df, 5)
-    movieU, movieSigma, movieV = decompositions.SVDDecomposition(movie_tag_df, 5)
 
-    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
-    movieSemanticsToActorSemanticsMapping = np.matrix(movieV) * np.matrix(actorV.transpose())
-    movieInMovieSemantics = np.matrix(movieU[moviesIndexList.index(movie_id)])
-    movieInActorSemanticsMatrix = movieInMovieSemantics * movieSemanticsToActorSemanticsMapping
-    movieInActorSemantics = (movieInActorSemanticsMatrix.tolist())[0]
-
+    tagsToActorSemantics = (np.matrix(actorV)).transpose()
+    movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
+    movieInTags = movieTagMatrix[moviesIndexList.index(movie_id)]
+    movieInActorSemantics = (movieInTags * tagsToActorSemantics).tolist()[0]
     actorsInSemantics = np.matrix(actorU)
     
     actorsWithScores = []
@@ -249,17 +246,10 @@ def task1d_pca(movie_id):
     movieIndexList = list(movie_tag_df.index)
     
     actorSemantics = decompositions.PCADecomposition(actor_tag_df, 5)
-    movieSemantics = decompositions.PCADecomposition(movie_tag_df, 5)
     
     actorP = np.matrix(actorSemantics).transpose()
-    movieP = np.matrix(movieSemantics).transpose()
-    
-    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
-    movieSemanticsToActorSemantics = np.matrix(movieSemantics) * actorP
-    moviesInMovieSemantics = movieTagMatrix * movieP
-    movieInMovieSemantics =  moviesInMovieSemantics[movieIndexList.index(movie_id)]
-    movieInActorSemantics = (movieInMovieSemantics * movieSemanticsToActorSemantics).tolist()[0]
-    
+    movieInTags = movieTagMatrix[movieIndexList.index(movie_id)]
+    movieInActorSemantics = (movieInTags * actorP).tolist()[0]
     actorsInActorSemantics = (actorTagMatrix * actorP).tolist()
     
     DataHandler.create_actor_actorid_map()
