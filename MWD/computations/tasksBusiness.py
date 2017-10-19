@@ -404,7 +404,7 @@ def task1a_svd(genre):
     print("The 5 semantics for genre:" + genre + " are")
     index = 1
     for semantic in np.matrix(genre_semantics).tolist():
-        print("semantic " + str(index) + ": ", end="")
+        print("semantic " + str(index) + ": ")
         prettyPrintTagVector(semantic, tagIdTagsDf)
         print("")
         index = index + 1
@@ -417,7 +417,7 @@ def task1a_pca(genre):
     genre_movie_map = DataHandler.getGenreMoviesMap()
     movie_tag_df = DataHandler.load_movie_tag_df()
     tagIdTagsDf = DataHandler.tag_id_df
-    
+    tagsInDf = list(movie_tag_df.transpose().index)
     
     movies = genre_movie_map.get(genre)
     genre_movie_tags_df = (movie_tag_df.loc[movies]).dropna(how='any')
@@ -426,13 +426,59 @@ def task1a_pca(genre):
     print("The 5 semantics for genre:" + genre + " are")
     index = 1
     for semantic in np.matrix(genre_semantics).tolist():
-        print("semantic " + str(index) + ": ", end="")
-        prettyPrintTagVector(semantic, tagIdTagsDf)
+        print("semantic " + str(index) + ": ")
+        prettyPrintTagVector(semantic, tagsInDf, tagIdTagsDf)
         index = index + 1
     return
 
-def prettyPrintTagVector(vector, tagIdTagsDf):
+def task1b_pca(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    actorIdActorsDf = DataHandler.actor_info_df
+    
+    genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
+    actorsInDf = list(genre_actor_tags_df.transpose().index)
+    u, sigma, genre_semantics = decompositions.SVDDecomposition(genre_actor_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ")
+        prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        index = index + 1
+    return
+
+def task1b_svd(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    actorIdActorsDf = DataHandler.actor_info_df
+    
+    genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
+    actorsInDf = list(genre_actor_tags_df.transpose().index)
+    genre_semantics = decompositions.PCADecomposition(genre_actor_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ")
+        prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        index = index + 1
+    return
+
+def prettyPrintTagVector(vector, tagsInDf, tagIdTagsDf):
     vectorLen = len(vector)
     for index in range(0,vectorLen):
-        print(tagIdTagsDf.iloc[index][1] + ':' + str(vector[index]), end=' ')
+        tagId = tagsInDf[index]
+        tagName = tagIdTagsDf[tagIdTagsDf['tagId']==tagId].iloc[0][1]
+        print(tagName + ':' + str(vector[index]), end=', ')
+    print('.')
+    
+def prettyPrintActorVector(vector, actorsInDf, actorIdActorsDf):
+    vectorLen = len(vector)
+    for index in range(0, vectorLen):
+        actorId = actorsInDf[index]
+        actorName = actorIdActorsDf[actorIdActorsDf['id']==actorId].iloc[0][1]
+        print(actorName + ": " + str(vector[index]), end=', ')
     print('.')
