@@ -161,14 +161,11 @@ def task1dImplementation_SVD(movie_id):
     actorsSize = len(actorsIndexList)
     
     actorU, actorSigma, actorV = decompositions.SVDDecomposition(actor_tag_df, 5)
-    movieU, movieSigma, movieV = decompositions.SVDDecomposition(movie_tag_df, 5)
 
-    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
-    movieSemanticsToActorSemanticsMapping = np.matrix(movieV) * np.matrix(actorV.transpose())
-    movieInMovieSemantics = np.matrix(movieU[moviesIndexList.index(movie_id)])
-    movieInActorSemanticsMatrix = movieInMovieSemantics * movieSemanticsToActorSemanticsMapping
-    movieInActorSemantics = (movieInActorSemanticsMatrix.tolist())[0]
-
+    tagsToActorSemantics = (np.matrix(actorV)).transpose()
+    movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
+    movieInTags = movieTagMatrix[moviesIndexList.index(movie_id)]
+    movieInActorSemantics = (movieInTags * tagsToActorSemantics).tolist()[0]
     actorsInSemantics = np.matrix(actorU)
     
     actorsWithScores = []
@@ -232,6 +229,35 @@ def task1c_pca(actor_id):
         print(tup[1] + " : " + str(tup[0]))
     return
 
+def task1c_tfidf(actor_id):
+    DataHandler.vectors()
+    actorTagDataframe = DataHandler.actor_tag_df()
+    actorsTags = np.matrix(actorTagDataframe.as_matrix()).tolist()
+    actorIndexList = list(actorTagDataframe.index)
+    
+    simAndActor = []
+    concernedActor = actorsTags[actorIndexList.index(actor_id)]
+    totalActors = len(actorIndexList)
+    DataHandler.create_actor_actorid_map()
+    
+    for index in range(0, totalActors):
+        comparisonActorId = actorIndexList[index]
+        if(actor_id == comparisonActorId):
+            continue
+        comparisonActorName = DataHandler.actor_actorid_map.get(comparisonActorId)
+        comparisonActor = actorsTags[index]
+        comparisonScore = metrics.l2Norm(concernedActor, comparisonActor)
+        simAndActor.append((comparisonScore, comparisonActorName))
+        
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    top10Actors = result[0:10]
+    print("Top 10 actors similar to " + str(DataHandler.actor_actorid_map.get(actor_id)) + " are: ")
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
+    return
+        
+
 def PPR_top10_SimilarActors(seed):
     DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
@@ -284,17 +310,10 @@ def task1d_pca(movie_id):
     movieIndexList = list(movie_tag_df.index)
     
     actorSemantics = decompositions.PCADecomposition(actor_tag_df, 5)
-    movieSemantics = decompositions.PCADecomposition(movie_tag_df, 5)
     
     actorP = np.matrix(actorSemantics).transpose()
-    movieP = np.matrix(movieSemantics).transpose()
-    
-    #TODO: Is this the right way to map from one semantic space to another? Or do we have to do something more?
-    movieSemanticsToActorSemantics = np.matrix(movieSemantics) * actorP
-    moviesInMovieSemantics = movieTagMatrix * movieP
-    movieInMovieSemantics =  moviesInMovieSemantics[movieIndexList.index(movie_id)]
-    movieInActorSemantics = (movieInMovieSemantics * movieSemanticsToActorSemantics).tolist()[0]
-    
+    movieInTags = movieTagMatrix[movieIndexList.index(movie_id)]
+    movieInActorSemantics = (movieInTags * actorP).tolist()[0]
     actorsInActorSemantics = (actorTagMatrix * actorP).tolist()
     
     DataHandler.create_actor_actorid_map()
@@ -317,6 +336,42 @@ def task1d_pca(movie_id):
     movieid_name_map = DataHandler.movieid_name_map
     print("Top 10 actors similar to movie: " + str(movieid_name_map.get(movie_id)) + " are: ")
     top10Actors = result[0:10]
+    for tup in top10Actors:
+        print(tup[1] + " : " + str(tup[0]))
+    return
+
+def task1d_tfidf(movie_id):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    actorTagDataframe = DataHandler.actor_tag_df()
+    movie_tag_df = DataHandler.load_movie_tag_df()
+    
+    actorsTags = np.matrix(actorTagDataframe.as_matrix()).tolist()
+    actorIndexList = list(actorTagDataframe.index)
+    movieIndexList = list(movie_tag_df.index)
+    movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
+    
+    
+    actorsForMovie = DataHandler.movie_actor_map.get(movie_id)
+    simAndActor = []
+    movieInTags = movieTagMatrix[movieIndexList.index(movie_id)].tolist()[0]
+    totalActors = len(actorIndexList)
+    DataHandler.create_actor_actorid_map()
+    
+    for index in range(0, totalActors):
+        actorId = actorIndexList[index]
+        if (actorId in actorsForMovie):
+            continue
+        actorName = DataHandler.actor_actorid_map.get(actorId)
+        actorinTags = actorsTags[index]
+        comparisonScore = metrics.l2Norm(movieInTags, actorinTags)
+        simAndActor.append((comparisonScore, actorName))
+        
+    result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
+    
+    top10Actors = result[0:10]
+    movieid_name_map = DataHandler.movieid_name_map
+    print("Top 10 actors similar to " + str(movieid_name_map.get(movie_id)) + " are: ")
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
     return
@@ -439,7 +494,7 @@ def task1a_svd(genre):
     print("The 5 semantics for genre:" + genre + " are")
     index = 1
     for semantic in np.matrix(genre_semantics).tolist():
-        print("semantic " + str(index) + ": ", end="")
+        print("semantic " + str(index) + ": ")
         prettyPrintTagVector(semantic, tagIdTagsDf)
         print("")
         index = index + 1
@@ -452,7 +507,7 @@ def task1a_pca(genre):
     genre_movie_map = DataHandler.getGenreMoviesMap()
     movie_tag_df = DataHandler.load_movie_tag_df()
     tagIdTagsDf = DataHandler.tag_id_df
-    
+    tagsInDf = list(movie_tag_df.transpose().index)
     
     movies = genre_movie_map.get(genre)
     genre_movie_tags_df = (movie_tag_df.loc[movies]).dropna(how='any')
@@ -461,14 +516,51 @@ def task1a_pca(genre):
     print("The 5 semantics for genre:" + genre + " are")
     index = 1
     for semantic in np.matrix(genre_semantics).tolist():
-        print("semantic " + str(index) + ": ", end="")
-        prettyPrintTagVector(semantic, tagIdTagsDf)
+        print("semantic " + str(index) + ": ")
+        prettyPrintTagVector(semantic, tagsInDf, tagIdTagsDf)
         index = index + 1
     return
 
-def prettyPrintTagVector(vector, tagIdTagsDf):
+def task1b_pca(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    actorIdActorsDf = DataHandler.actor_info_df
+    
+    genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
+    actorsInDf = list(genre_actor_tags_df.transpose().index)
+    u, sigma, genre_semantics = decompositions.SVDDecomposition(genre_actor_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ")
+        prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        index = index + 1
+    return
+
+def task1b_svd(genre):
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    
+    actorIdActorsDf = DataHandler.actor_info_df
+    
+    genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
+    actorsInDf = list(genre_actor_tags_df.transpose().index)
+    genre_semantics = decompositions.PCADecomposition(genre_actor_tags_df, 5)
+    
+    print("The 5 semantics for genre:" + genre + " are")
+    index = 1
+    for semantic in np.matrix(genre_semantics).tolist():
+        print("semantic " + str(index) + ": ")
+        prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        index = index + 1
+    return
+
+def prettyPrintTagVector(vector, tagsInDf, tagIdTagsDf):
     vectorLen = len(vector)
     for index in range(0,vectorLen):
+<<<<<<< HEAD
         print(tagIdTagsDf.iloc[index][1] + ':' + str(vector[index]), end=' ')
     print('.')
 	
@@ -484,3 +576,17 @@ def genre_spaceActors_LDA_tf(genre):
     for i in range(0,5):
         print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
         print('\n')
+=======
+        tagId = tagsInDf[index]
+        tagName = tagIdTagsDf[tagIdTagsDf['tagId']==tagId].iloc[0][1]
+        print(tagName + ':' + str(vector[index]), end=', ')
+    print('.')
+    
+def prettyPrintActorVector(vector, actorsInDf, actorIdActorsDf):
+    vectorLen = len(vector)
+    for index in range(0, vectorLen):
+        actorId = actorsInDf[index]
+        actorName = actorIdActorsDf[actorIdActorsDf['id']==actorId].iloc[0][1]
+        print(actorName + ": " + str(vector[index]), end=', ')
+    print('.')
+>>>>>>> 9913917b0b8116081c170737cd277261b6e31b93
