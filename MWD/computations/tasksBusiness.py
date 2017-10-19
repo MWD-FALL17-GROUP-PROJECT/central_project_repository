@@ -316,6 +316,8 @@ def task1d_tfidf(movie_id):
     movieIndexList = list(movie_tag_df.index)
     movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
     
+    
+    actorsForMovie = DataHandler.movie_actor_map.get(movie_id)
     simAndActor = []
     movieInTags = movieTagMatrix[movieIndexList.index(movie_id)].tolist()[0]
     totalActors = len(actorIndexList)
@@ -323,6 +325,8 @@ def task1d_tfidf(movie_id):
     
     for index in range(0, totalActors):
         actorId = actorIndexList[index]
+        if (actorId in actorsForMovie):
+            continue
         actorName = DataHandler.actor_actorid_map.get(actorId)
         actorinTags = actorsTags[index]
         comparisonScore = metrics.l2Norm(movieInTags, actorinTags)
