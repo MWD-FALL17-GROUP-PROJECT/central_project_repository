@@ -25,10 +25,37 @@ def genre_spaceTags_LDA(genre):
         print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
         print('\n')
 
+def genre_spaceTags_LDA_tf(genre):
+    movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map = DataHandler.get_dicts()
+    df = DataHandler.load_genre_matrix_tf(genre)
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,5,constants.genreTagsSpacePasses)
+    topic_terms = defaultdict(set)
+    for i in range(0,5):
+        for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
+            term = tag_id_map.get(id_Term_map.get(tuples[0]))
+            topic_terms[i].add((term,tuples[1]))
+    for i in range(0,5):
+        print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
+        print('\n')
+
+
 def genre_spaceActors_LDA(genre):
     movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map = DataHandler.get_dicts()
     df = DataHandler.load_genre_actor_matrix(genre)
-    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,constants.genreActorSpacePasses)
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,5,constants.genreActorSpacePasses)
+    topic_terms = defaultdict(set)
+    for i in range(0,5):
+        for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
+            term = id_Term_map.get(tuples[0])
+            topic_terms[i].add((term,tuples[1]))
+    for i in range(0,5):
+        print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
+        print('\n')
+
+def genre_spaceActors_LDA_tf(genre):
+    movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map = DataHandler.get_dicts()
+    df = DataHandler.load_genre_actor_matrix_tf(genre)
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,5,constants.genreActorSpacePasses)
     topic_terms = defaultdict(set)
     for i in range(0,5):
         for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
@@ -44,6 +71,14 @@ def top10_Actors_LDA(givenActor):
     print('Actors similar to '+str(DataHandler.actor_actorid_map[givenActor]))
     for actor,sim in top10SimilarActors_similarity:
         print(DataHandler.actor_actorid_map[actor]+' '+str(sim))
+
+def top10_Actors_LDA_tf(givenActor):
+    DataHandler.create_actor_actorid_map()
+    top10SimilarActors_similarity = DataHandler.similarActors_LDA_tf(givenActor)
+    print('Actors similar to '+str(DataHandler.actor_actorid_map[givenActor]))
+    for actor,sim in top10SimilarActors_similarity:
+        print(DataHandler.actor_actorid_map[actor]+' '+str(sim))
+
         
 def top5LatentCP(tensorIdentifier, space):
     if (tensorIdentifier == 'AMY'):
@@ -436,3 +471,16 @@ def prettyPrintTagVector(vector, tagIdTagsDf):
     for index in range(0,vectorLen):
         print(tagIdTagsDf.iloc[index][1] + ':' + str(vector[index]), end=' ')
     print('.')
+	
+def genre_spaceActors_LDA_tf(genre):
+    movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map = DataHandler.get_dicts()
+    df = DataHandler.load_genre_actor_matrix_tf(genre)
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,5,constants.genreActorSpacePasses)
+    topic_terms = defaultdict(set)
+    for i in range(0,5):
+        for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
+            term = id_Term_map.get(tuples[0])
+            topic_terms[i].add((term,tuples[1]))
+    for i in range(0,5):
+        print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
+        print('\n')
