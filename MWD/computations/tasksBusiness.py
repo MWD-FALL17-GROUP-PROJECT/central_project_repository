@@ -216,7 +216,7 @@ def PPR_top10_SimilarCoActors(seed):
     alpha = constants.ALPHA
     act_similarities = pagerank.PPR(actact,seed,alpha)
     print('Co Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
-    for index,sim in act_similarities.items():
+    for index,sim in act_similarities:
         print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
 
 #userMovies = user_rated_or_tagged_map.get(67348)
@@ -310,7 +310,7 @@ def PersnalizedPageRank_top10_SimilarCoActors(seed):
     coactcoact = DataHandler.coactor_siilarity_matrix()
     actor_actorid_map = DataHandler.actor_actorid_map
     alpha = constants.ALPHA
-    act_similarities = ppr.PPpersonalizedPageRankR(coactcoact,seed,alpha)
+    act_similarities = ppr.personalizedPageRank(coactcoact,seed,alpha)
     actors = list(coactcoact.index)
     actorDF = pd.DataFrame(pd.Series(actors),columns = ['Actor'])
     actorDF['Actor'] = actorDF['Actor'].map(lambda x:actor_actorid_map.get(x))

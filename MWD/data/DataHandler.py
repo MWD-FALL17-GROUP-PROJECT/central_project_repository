@@ -211,7 +211,7 @@ def coactor_siilarity_matrix():
 	for actor1 in actorList:
 		actorMap = dict.fromkeys(actorList, 0.0)
 		for actor2 in actorList:
-			co_star_movie_set = set.intersection(actor_movie_rank_map[actor1], actor_movie_rank_map[actor2])
+			co_star_movie_set = set.intersection(set(k for (k,y) in actor_movie_rank_map[actor1]), set(k for (k,y) in actor_movie_rank_map[actor2]))
 			actorMap[actor2] = co_star_movie_set.__len__()
 		dfList.append(actorMap)
 	return pd.DataFrame(dfList, columns=actorList, index=actorList)
