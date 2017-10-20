@@ -95,6 +95,17 @@ def vectors():
 	tagset.clear()
 	print('Main : ', time.time() - t)
 
+def getGenreMoviesMap():
+    genre_movies_map = {}
+    for row in genre_movie_df.itertuples():
+        genres_list = row.genres.split("|")
+        for genre in genres_list:
+            if (genre in genre_movies_map.keys()):
+                genre_movies_map[genre].append(row.movieid)
+            else:
+                genre_movies_map[genre] = [row.movieid]
+    return genre_movies_map
+
 def createDictionaries1():
     global max_rank
     global min_rank
@@ -159,6 +170,29 @@ def load_genre_matrix(given_genre):
 	df.index = movieList
 	return df
 
+def load_genre_matrix_tf(given_genre):
+	createDictionaries1()
+
+	tagList = sorted(list(tag_movie_map.keys()))
+	movieList = []
+	df = pd.DataFrame(columns=tagList)
+	for movie in genre_movie_map[given_genre]:
+		tagsInMovie = movie_tag_map[movie]
+		tf_idf_map = dict()
+		if tagsInMovie:
+			movieList.append(movie)
+			for tag in tagList:
+				moviesInTagCount = len(tag_movie_map[tag])
+				tf_numerator = 0
+				for temp_movie, datetime in tag_movie_map[tag]:
+					if movie == temp_movie:
+						tf_numerator += 1
+				tf = tf_numerator
+				tf_idf = tf
+				tf_idf_map[tag] = tf_idf
+			df = df.append(tf_idf_map, ignore_index=True)
+	df.index = movieList
+	return df
 
 def load_genre_actor_matrix(given_genre):
 	global max_rank
@@ -509,3 +543,114 @@ def getTensor_ActorMovieGenreYearRankRating():
             for genre in genreMovie:
                 tensor_ActorMovieGenreYearRankRating[actors.index(actor),movies.index(movie),genres.index(genre),years.index(movie_year_map.get(movie)),ranks.index(rank),range(math.ceil(avgRating),rt)] = 1
     return tensor_ActorMovieGenreYearRankRating
+def similarActors_LDA_tf(givenActor):
+    createDictionaries1()
+    vectors()
+    givenActor_similarity = defaultdict(float)
+    actor_weight_vector_tf = actor_tagVector_tf()
+    tagList = sorted(list(tag_movie_map.keys()))
+    actorList = sorted(list(actor_movie_rank_map.keys()))
+    df = pd.DataFrame(columns=tagList)
+    dictList = []
+    for actor in actorList:
+        actor_tag_dict = dict.fromkeys(tagList,0.0)
+        for tag,weight in actor_weight_vector_tf[actor]:
+            actor_tag_dict[tag] = weight
+        dictList.append(actor_tag_dict)
+    df = df.append(dictList,ignore_index=True)
+    t = time.time()
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,4,constants.actorTagsSpacePasses)
+    print('Query : ', time.time() - t)
+    for otherActor in actorList:
+        ac1 = representDocInLDATopics(df,actorList.index(givenActor),ldaModel)
+        if otherActor != givenActor:
+            ac2 = representDocInLDATopics(df,actorList.index(otherActor),ldaModel)
+            givenActor_similarity[otherActor]=(metrics.simlarity_kullback_leibler(ac1,ac2))
+    #print(sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=True))
+    top10 = sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=False)[0:11]
+    return top10
+
+def load_genre_actor_matrix_tf(given_genre):
+	global max_rank
+	global min_rank
+	global tag_count
+	global max_date
+	global min_date
+
+	createDictionaries1()
+
+	actorList = sorted(list(actor_movie_rank_map.keys()))
+	df = pd.DataFrame(columns=actorList)
+	movieCount = movie_tag_map.keys().__len__()
+	movieList = []
+
+	for movieInGenre in genre_movie_map[given_genre]:
+		movieList.append(movieInGenre)
+		actorsInMovieList = movie_actor_rank_map[movieInGenre]
+		actorCountOfMovie = len(actorsInMovieList)
+		tf_idf_map = dict.fromkeys(actorList, 0.0)
+		for actor, rank in actorsInMovieList:
+			movieCountOfActor = len(actor_movie_rank_map[actor])
+			tf_numerator = 1
+			tf_idf = tf_numerator
+			tf_idf_map[actor] = tf_idf
+		df = df.append(tf_idf_map, ignore_index=True)
+	df.index = movieList
+	return df
+
+def actor_tagVector_tf():
+	global max_rank
+	global min_rank
+
+	for row in movie_actor_df.itertuples():
+		if row.actor_movie_rank < min_rank:
+			min_rank = row.actor_movie_rank
+		if row.actor_movie_rank > max_rank:
+			max_rank = row.actor_movie_rank
+		actor_movie_rank_map[row.actorid].add((row.movieid, row.actor_movie_rank))
+		movie_actor_rank_map[row.movieid].add((row.actorid, row.actor_movie_rank))
+
+	for actorID, movies_list in actor_movie_rank_map.items():
+
+		tag_counter = 0
+		tag_weight_tuple_tf = defaultdict(float)
+		for movie in movies_list:
+			tag_counter += len(movie_tag_map[movie[0]])
+
+		for movieID, rank in movies_list:
+			if movieID in movie_tag_map:
+				for tag_id, timestamp in movie_tag_map[movieID]:
+					actor_count = 0
+					aSetOfTags = set()
+					for mov in tag_movie_map[tag_id]:
+						aSetOfTags.update([k for (k, v) in movie_actor_rank_map[mov[0]]])
+					actor_count = aSetOfTags.__len__()
+					tf = 1
+					tag_weight_tuple_tf[tag_id] += tf					
+		actor_weight_vector_tf[actorID] = [(k, v) for k, v in tag_weight_tuple_tf.items()]
+
+	return actor_weight_vector_tf
+
+def load_genre_matrix_tf(given_genre):
+	createDictionaries1()
+
+	tagList = sorted(list(tag_movie_map.keys()))
+	movieList = []
+	df = pd.DataFrame(columns=tagList)
+	for movie in genre_movie_map[given_genre]:
+		tagsInMovie = movie_tag_map[movie]
+		tf_idf_map = dict()
+		if tagsInMovie:
+			movieList.append(movie)
+			for tag in tagList:
+				moviesInTagCount = len(tag_movie_map[tag])
+				tf_numerator = 0
+				for temp_movie, datetime in tag_movie_map[tag]:
+					if movie == temp_movie:
+						tf_numerator += 1
+				tf = tf_numerator
+				tf_idf = tf
+				tf_idf_map[tag] = tf_idf
+			df = df.append(tf_idf_map, ignore_index=True)
+	df.index = movieList
+	return df
