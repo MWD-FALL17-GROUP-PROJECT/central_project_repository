@@ -7,3 +7,5 @@ actorTagsSpacePasses = 1000
 genreTagsSpacePasses = 1000
 genreActorSpacePasses = 1000
 RANK = 5
+EPSILON = 0.0000001
+ALPHA = 0.85

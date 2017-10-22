@@ -158,7 +158,7 @@ def top5SimilarMovies(userMovies):
 def PersnalizedPageRank_top10_SimilarActors(seed):
     DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
-    actact = DataHandler.actor_actor_similarity_matrix()
+    actact = DataHandler.actor_actor_invSimilarity_matrix()
     actor_actorid_map = DataHandler.actor_actorid_map
     alpha = constants.ALPHA
     act_similarities = ppr.personalizedPageRank(actact,seed,alpha)
@@ -176,7 +176,7 @@ def PersnalizedPageRank_top10_SimilarActors(seed):
 def PersnalizedPageRank_top10_SimilarCoActors(seed):
     DataHandler.createDictionaries1()
     DataHandler.create_actor_actorid_map()
-    coactcoact = DataHandler.coactor_siilarity_matrix()
+    coactcoact, ignoreVariable = DataHandler.coactor_siilarity_matrix()
     actor_actorid_map = DataHandler.actor_actorid_map
     alpha = constants.ALPHA
     act_similarities = ppr.personalizedPageRank(coactcoact,seed,alpha)
@@ -261,7 +261,8 @@ def PersnalizedPageRank_top5SimilarMovies1(userMovies):
 def Recommender(userId):
     DataHandler.createDictionaries1()
     movieRatedSeed = DataHandler.userMovieRatings(userId)
-
+    
+    
     actor_movie_rank_map = DataHandler.actor_movie_rank_map
     decomposed = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenre(),5)
     moviesList = sorted(list(DataHandler.movie_actor_rank_map.keys()))
@@ -270,6 +271,8 @@ def Recommender(userId):
     rankedItems = sorted(list(map(lambda x:(moviesList[x[0]],x[1]),prData.itertuples())),key=lambda x:x[1], reverse=True)
     movieid_name_map = DataHandler.movieid_name_map
 
+    seedmovieNames = [movieid_name_map[k] for k,y in movieRatedSeed]
+    print("Movies similar to the users seed movies " + str(seedmovieNames) + " are:")
     return [(movieid_name_map[k],y) for (k,y) in rankedItems if k not in [k for k,y in movieRatedSeed]]
 
 

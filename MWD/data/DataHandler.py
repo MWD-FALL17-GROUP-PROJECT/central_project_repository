@@ -237,6 +237,20 @@ def actor_actor_similarity_matrix():
 		dfList.append(actorMap)
 	return pd.DataFrame(dfList, columns=actorList, index=actorList), actorList
 
+def actor_actor_invSimilarity_matrix():
+    actor_tag_map = actor_tagVector()
+    dfList = []
+    actorList = sorted(list(actor_tag_map.keys()))
+    for actor1 in actorList:
+        actorMap = dict.fromkeys(actorList, 0.0)
+        for actor2 in actorList:
+            vec1 = dict(actor_tag_map[actor1])
+            vec2 = dict(actor_tag_map[actor2])
+            adjEuclidean =  constants.EPSILON + metrics.euclideanDistance(vec1, vec2)
+            actorMap[actor2] = 1.0/adjEuclidean
+		# df.at[actor1,actor2] = metrics.euclidean(vec1,vec2)
+        dfList.append(actorMap)
+    return pd.DataFrame(dfList, columns=actorList, index=actorList)
 
 def coactor_siilarity_matrix():
 	createDictionaries1()
@@ -476,7 +490,7 @@ def movie_movie_Similarity1(movie_tag_df):
         for movie2 in movies:
             vec1 = dict(zip(movie_tag_df.loc[movie1].index,movie_tag_df.loc[movie1]))
             vec2 = dict(zip(movie_tag_df.loc[movie2].index,movie_tag_df.loc[movie2]))
-            movieMap[movie2] = 1/(0.0000001+metrics.euclideanDistance(vec1, vec2))
+            movieMap[movie2] = 1/(constants.EPSILON+metrics.euclideanDistance(vec1, vec2))
         dfList.append(movieMap)
     return pd.DataFrame(dfList, columns=movies, index=movies)
 
