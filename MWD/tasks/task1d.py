@@ -12,7 +12,7 @@ def task1d(movie_id, method):
     elif(method=="PCA"):
         task1d_pca(movie_id)
     elif(method=="LDA"):
-        print("hi")
+        similarMovieActor_LDA(movie_id)
     elif(method=="TFIDF"):
         task1d_tfidf(movie_id)
     else:
@@ -140,3 +140,30 @@ def task1d_tfidf(movie_id):
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
     return
+	
+def similarMovieActor_LDA(givenMovie):
+    vectors()
+    createDictionaries1()
+    givenActor_similarity = defaultdict(float)
+    actor_tag_dff = actor_tag_df()
+    movie_tag_dff = load_movie_tag_df()
+    actorTagMatrix = np.matrix(actor_tag_dff.as_matrix())
+    movieTagMatrix= np.matrix(movie_tag_dff.as_matrix())
+    
+    actorIndexList = list(actor_tag_dff.index)
+    movieIndexList = list(movie_tag_dff.index)
+    movieInTags = movieTagMatrix[movieIndexList.index(givenMovie)]
+    actorsForMovie = movie_actor_map.get(givenMovie)
+    
+    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(actor_tag_dff,5,constants.actorTagsSpacePasses)
+    for otherActor in actorIndexList:
+        mo1 = representDocInLDATopics(movie_tag_dff,givenMovie,ldaModel)
+        if otherActor not in actorsForMovie:
+            ac2 = representDocInLDATopics(actor_tag_dff,otherActor,ldaModel)
+            givenActor_similarity[otherActor]=(metrics.simlarity_kullback_leibler(mo1,ac2))
+    #print(sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=True))
+    top10 = sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=False)[0:11]
+    for actors in top10:
+        print(actor_actorid_map.get(actors[0]), actors[1])
+    return top10
+	
