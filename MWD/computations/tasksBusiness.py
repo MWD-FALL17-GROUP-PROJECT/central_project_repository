@@ -253,3 +253,28 @@ def PersnalizedPageRank_top5SimilarMovies1(userMovies):
     for index in sortedResult.index:
         if sortedResult.loc[index,'movies'] not in seedmovieNames:
             print(sortedResult.loc[index,'movies']+' '+ str(sortedResult.loc[index,0])+' '+str(movie_genre_map.get(movies[index])))
+
+def Recommender(userId):
+    DataHandler.createDictionaries1()
+    movieRatedSeed = DataHandler.userMovieRatings(userId)
+
+    actor_movie_rank_map = DataHandler.actor_movie_rank_map
+    decomposed = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenre(),5)
+    moviesList = sorted(list(DataHandler.movie_actor_rank_map.keys()))
+    movie_movie_similarity = DataHandler.movie_movie_Similarity1(pd.DataFrame(decomposed[1],index=moviesList))
+    prData = ppr.personalizedPageRankWeighted(movie_movie_similarity, movieRatedSeed, 0.9)
+    rankedItems = sorted(list(map(lambda x:(moviesList[x[0]],x[1]),prData.itertuples())),key=lambda x:x[1], reverse=True)
+    movieid_name_map = DataHandler.movieid_name_map
+
+    return [(movieid_name_map[k],y) for (k,y) in rankedItems if k not in [k for k,y in movieRatedSeed]]
+
+
+
+
+
+
+
+
+
+
+

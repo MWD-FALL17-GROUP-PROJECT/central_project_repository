@@ -10,7 +10,7 @@ def PPR(similaritDataframe,seed,alpha):
     prob = 1/len(seed)
     actors = list(similaritDataframe.index)
     seed = [check(i,seed,actors) for i in seed]
-    seed = list(filter(None, seed))
+    seed = list(filter(None.__ne__, seed))
     personalization_map = defaultdict()
     for i in range(0,len(similaritDataframe)):
         if i in seed:

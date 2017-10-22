@@ -232,7 +232,7 @@ def actor_actor_similarity_matrix():
 		for actor2 in actorList:
 			vec1 = dict(actor_tag_map[actor1])
 			vec2 = dict(actor_tag_map[actor2])
-			actorMap[actor2] = metrics.euclidean(vec1, vec2)
+			actorMap[actor2] = metrics.euclideanDistance(vec1, vec2)
 		# df.at[actor1,actor2] = metrics.euclidean(vec1,vec2)
 		dfList.append(actorMap)
 	return pd.DataFrame(dfList, columns=actorList, index=actorList)
@@ -476,7 +476,7 @@ def movie_movie_Similarity1(movie_tag_df):
         for movie2 in movies:
             vec1 = dict(zip(movie_tag_df.loc[movie1].index,movie_tag_df.loc[movie1]))
             vec2 = dict(zip(movie_tag_df.loc[movie2].index,movie_tag_df.loc[movie2]))
-            movieMap[movie2] = metrics.euclideanDistance(vec1, vec2)
+            movieMap[movie2] = 1/(0.0000001+metrics.euclideanDistance(vec1, vec2))
         dfList.append(movieMap)
     return pd.DataFrame(dfList, columns=movies, index=movies)
 
@@ -512,12 +512,12 @@ def getTensor_ActorMovieGenre():
     tensor_ActorMovieGenreYear = np.zeros(a*m*g).reshape(a,m,g)
     for actor in actors:
         for movie,rank in actor_movie_rank_map.get(actor):
-            ratings = movie_ratings_map.get(movie)
-            avgRating = sum(ratings)/len(ratings)
+            # ratings = movie_ratings_map.get(movie)
+            # avgRating = sum(ratings)/len(ratings)
             genreMovie = movie_genre_map.get(movie)
-            weight = avgRating/rank
+            weight = 1/rank
             for genre in genreMovie:
-                tensor_ActorMovieGenreYear[actors.index(actor),movies.index(movie),genres.index(genre)] = 1#weight
+                tensor_ActorMovieGenreYear[actors.index(actor),movies.index(movie),genres.index(genre)] = weight
     return tensor_ActorMovieGenreYear
 
 def getTensor_ActorMovieGenreYearRankRating():
