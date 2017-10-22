@@ -560,28 +560,11 @@ def task1b_svd(genre):
 def prettyPrintTagVector(vector, tagsInDf, tagIdTagsDf):
     vectorLen = len(vector)
     for index in range(0,vectorLen):
-<<<<<<< HEAD
-        print(tagIdTagsDf.iloc[index][1] + ':' + str(vector[index]), end=' ')
-    print('.')
-	
-def genre_spaceActors_LDA_tf(genre):
-    movie_tag_map,tag_id_map,actor_movie_rank_map,movie_actor_rank_map = DataHandler.get_dicts()
-    df = DataHandler.load_genre_actor_matrix_tf(genre)
-    ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,5,constants.genreActorSpacePasses)
-    topic_terms = defaultdict(set)
-    for i in range(0,5):
-        for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
-            term = id_Term_map.get(tuples[0])
-            topic_terms[i].add((term,tuples[1]))
-    for i in range(0,5):
-        print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
-        print('\n')
-=======
         tagId = tagsInDf[index]
         tagName = tagIdTagsDf[tagIdTagsDf['tagId']==tagId].iloc[0][1]
         print(tagName + ':' + str(vector[index]), end=', ')
     print('.')
-    
+	
 def prettyPrintActorVector(vector, actorsInDf, actorIdActorsDf):
     vectorLen = len(vector)
     for index in range(0, vectorLen):
@@ -589,4 +572,3 @@ def prettyPrintActorVector(vector, actorsInDf, actorIdActorsDf):
         actorName = actorIdActorsDf[actorIdActorsDf['id']==actorId].iloc[0][1]
         print(actorName + ": " + str(vector[index]), end=', ')
     print('.')
->>>>>>> 9913917b0b8116081c170737cd277261b6e31b93
