@@ -235,7 +235,7 @@ def actor_actor_similarity_matrix():
 			actorMap[actor2] = metrics.euclideanDistance(vec1, vec2)
 		# df.at[actor1,actor2] = metrics.euclidean(vec1,vec2)
 		dfList.append(actorMap)
-	return pd.DataFrame(dfList, columns=actorList, index=actorList)
+	return pd.DataFrame(dfList, columns=actorList, index=actorList), actorList
 
 
 def coactor_siilarity_matrix():
@@ -248,7 +248,7 @@ def coactor_siilarity_matrix():
 			co_star_movie_set = set.intersection(set(k for (k,y) in actor_movie_rank_map[actor1]), set(k for (k,y) in actor_movie_rank_map[actor2]))
 			actorMap[actor2] = co_star_movie_set.__len__()
 		dfList.append(actorMap)
-	return pd.DataFrame(dfList, columns=actorList, index=actorList)
+	return pd.DataFrame(dfList, columns=actorList, index=actorList), actorList
 
 
 def actor_tag_df():

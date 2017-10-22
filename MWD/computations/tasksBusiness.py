@@ -101,14 +101,18 @@ def top5LatentCP(tensorIdentifier, space):
         print('Wrong Tensor Identifier')
 
 data_required = {}
+
 def get_partition_on_ids(split_group_with_index, data) :
+    data_required.clear()
     for i in range(len(split_group_with_index)):
       for j in range(len(split_group_with_index[i])):
          if i in data_required :
              data_required.get(i).append(data[split_group_with_index[i][j]])
          else :
              data_required.update({i : [data[split_group_with_index[i][j]]]})
-       
+    
+    return data_required
+    
 def get_partition_subtasks() :
     print(data_required)
         
