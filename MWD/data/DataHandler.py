@@ -654,3 +654,23 @@ def load_genre_matrix_tf(given_genre):
 			df = df.append(tf_idf_map, ignore_index=True)
 	df.index = movieList
 	return df
+	
+def userMovieRatings(user_id):
+	movieRatings = dict()
+	count = 0
+	sum = 0
+	for row in user_ratings_df.itertuples():
+		if(row.userid == user_id):
+			rating = row.rating
+			count += 1
+			sum += rating
+			movieRatings[row.movieid] = rating
+
+	mean = float(sum)/float(count)
+	for row in tag_movie_df.itertuples():
+		if(row.userid == user_id):
+			if(row.movieid not in movieRatings):
+				movieRatings[row.movieid] = mean
+				sum += mean
+
+	return [(k,v/sum) for k,v in movieRatings.items()]
