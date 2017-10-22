@@ -49,7 +49,7 @@ def kmeans_outlier_removal_iterative(data,numgroups):
 		if prev_size == data.__len__():
 			break
 		prev_size = data.__len__()
-		print(data.__len__())
+		#print(data.__len__())
 	return data
 
 def outlier_removalkm(data,numgroups):
