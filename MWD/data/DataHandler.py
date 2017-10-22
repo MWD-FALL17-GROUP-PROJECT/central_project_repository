@@ -355,7 +355,7 @@ def getTensor_ActorMovieYear():
     for actor in actors:
         for movie in actor_movie_map.get(actor):
             tensor_ActorMovieYear[actors.index(actor),movies.index(movie),years.index(movie_year_map.get(movie))] = 1
-    return tensor_ActorMovieYear
+    return tensor_ActorMovieYear, actors, movies, years
 
 
 """
@@ -384,7 +384,7 @@ def getTensor_TagMovieRating():
         movieAvgRating = sum(movieRatings) / float(len(movieRatings))
         for tag,date in movie_tag_map.get(movie):
             tensor_TagMovieRating[tags.index(tag),movies.index(movie),range(math.ceil(movieAvgRating),r)] = 1
-    return tensor_TagMovieRating
+    return tensor_TagMovieRating, tags, movies, ratings
 
 def docSpecificCorpus(df,actorIndex):
     import gensim

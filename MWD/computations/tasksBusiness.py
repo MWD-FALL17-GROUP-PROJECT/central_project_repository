@@ -6,6 +6,7 @@ import pandas as pd
 from collections import defaultdict
 from operator import itemgetter
 from util import constants
+from util import formatter
 import numpy as np
 from computations import metrics
 import operator
@@ -82,34 +83,48 @@ def top10_Actors_LDA_tf(givenActor):
         
 def top5LatentCP(tensorIdentifier, space):
     if (tensorIdentifier == 'AMY'):
-        u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieYear(),constants.RANK)
+        tensor, actors, movies, years = DataHandler.getTensor_ActorMovieYear()
+        u = decompositions.CPDecomposition(tensor, constants.RANK)
         if (space == 'Actor'):
             actorRank = np.array(u[0])
-            print(actorRank.T)
+            split_group_with_index = formatter.splitGroup(actorRank, 5)
+            get_partition_on_ids(split_group_with_index, actors)
+            print (actorRank.T)
             return
         if (space == 'Movie'):
             movieRank = np.array(u[1])
+            split_group_with_index = formatter.splitGroup(movieRank, 5)
+            get_partition_on_ids(split_group_with_index, movies)
             print(movieRank.T)
             return
         if (space == 'Year'):
-            YearRank = np.array(u[0])
+            YearRank = np.array(u[2])
+            split_group_with_index = formatter.splitGroup(YearRank, 5)
+            get_partition_on_ids(split_group_with_index, years)
             print(YearRank.T)
             return
         else:
             print('Wrong Space')
             return
     if (tensorIdentifier == 'TMR'):
-        u = decompositions.CPDecomposition(DataHandler.getTensor_TagMovieRanking(),constants.RANK)
+        tensor, tags, movies, ranks = DataHandler.getTensor_TagMovieRating()
+        u = decompositions.CPDecomposition(tensor,constants.RANK)
         if (space == 'Tag'):
             tagRank = np.array(u[0])
+            split_group_with_index = formatter.splitGroup(tagRank, 5)
+            get_partition_on_ids(split_group_with_index, tags)
             print(tagRank.T)
             return
         if (space == 'Movie'):
             movieRank = np.array(u[1])
+            split_group_with_index = formatter.splitGroup(movieRank, 5)
+            get_partition_on_ids(split_group_with_index, movies)
             print(movieRank.T)
             return
         if (space == 'Ranking'):
-            RankingRank = np.array(u[0])
+            RankingRank = np.array(u[2])
+            split_group_with_index = formatter.splitGroup(RankingRank, 5)
+            get_partition_on_ids(split_group_with_index, ranks)
             print(RankingRank.T)
             return
         else:
@@ -118,6 +133,17 @@ def top5LatentCP(tensorIdentifier, space):
     else:
         print('Wrong Tensor Identifier')
 
+data_required = {}
+def get_partition_on_ids(split_group_with_index, data) :
+    for i in range(len(split_group_with_index)):
+      for j in range(len(split_group_with_index[i])):
+         if i in data_required :
+             data_required.get(i).append(data[split_group_with_index[i][j]])
+         else :
+             data_required.update({i : [data[split_group_with_index[i][j]]]})
+       
+def get_partition_subtasks() :
+    print(data_required)
 '''
 prints the top 10 actor names with their cosine similarity weight related to
 an input actor id based on top 5 underlying semantics
