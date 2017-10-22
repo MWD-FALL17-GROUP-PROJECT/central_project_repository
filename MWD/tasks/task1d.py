@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-
 from computations import decompositions
-from computations import metrics
 from data import DataHandler
+from collections import defaultdict
+from operator import itemgetter
+from util import constants
 import numpy as np
 import operator
+from computations import metrics
+DataHandler.vectors()
+DataHandler.create_actor_actorid_map()
 
 def task1d(movie_id, method):
     if(method=="SVD"):
@@ -142,28 +146,28 @@ def task1d_tfidf(movie_id):
     return
 	
 def similarMovieActor_LDA(givenMovie):
-    vectors()
-    createDictionaries1()
+    DataHandler.vectors()
+    DataHandler.createDictionaries1()
+    DataHandler.create_actor_actorid_map()
     givenActor_similarity = defaultdict(float)
-    actor_tag_dff = actor_tag_df()
-    movie_tag_dff = load_movie_tag_df()
+    actor_tag_dff = DataHandler.actor_tag_df()
+    movie_tag_dff = DataHandler.load_movie_tag_df()
     actorTagMatrix = np.matrix(actor_tag_dff.as_matrix())
     movieTagMatrix= np.matrix(movie_tag_dff.as_matrix())
     
     actorIndexList = list(actor_tag_dff.index)
     movieIndexList = list(movie_tag_dff.index)
     movieInTags = movieTagMatrix[movieIndexList.index(givenMovie)]
-    actorsForMovie = movie_actor_map.get(givenMovie)
+    actorsForMovie = DataHandler.movie_actor_map.get(givenMovie)
     
     ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(actor_tag_dff,5,constants.actorTagsSpacePasses)
     for otherActor in actorIndexList:
-        mo1 = representDocInLDATopics(movie_tag_dff,givenMovie,ldaModel)
+        mo1 = DataHandler.representDocInLDATopics(movie_tag_dff,givenMovie,ldaModel)
         if otherActor not in actorsForMovie:
-            ac2 = representDocInLDATopics(actor_tag_dff,otherActor,ldaModel)
+            ac2 = DataHandler.representDocInLDATopics(actor_tag_dff,otherActor,ldaModel)
             givenActor_similarity[otherActor]=(metrics.simlarity_kullback_leibler(mo1,ac2))
     #print(sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=True))
     top10 = sorted(givenActor_similarity.items(),key = itemgetter(1),reverse=False)[0:11]
     for actors in top10:
-        print(actor_actorid_map.get(actors[0]), actors[1])
-    return top10
-	
+        print(DataHandler.actor_actorid_map.get(actors[0]), actors[1])
+    return
