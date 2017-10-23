@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from computations import decompositions,pagerank
+from computations import decompositions
 from data import DataHandler
 import pandas as pd
 from collections import defaultdict
@@ -187,43 +187,43 @@ def get_partition_subtasks() :
         print (" ")
     #print(data_required)
         
-def PPR_top10_SimilarActors(seed):
-    DataHandler.createDictionaries1()
-    DataHandler.create_actor_actorid_map()
-    actact = DataHandler.actor_actor_similarity_matrix()
-    actor_actorid_map = DataHandler.actor_actorid_map
-    alpha = constants.ALPHA
-    act_similarities = pagerank.PPR(actact,seed,alpha)
-    print('Top 10 actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
-    for index,sim in act_similarities:
-        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
-        
-def PPR_top10_SimilarCoActors(seed):
-    DataHandler.createDictionaries1()
-    DataHandler.create_actor_actorid_map()
-    actact = DataHandler.actor_actor_similarity_matrix()
-    actor_actorid_map = DataHandler.actor_actorid_map
-    alpha = constants.ALPHA
-    act_similarities = pagerank.PPR(actact,seed,alpha)
-    print('Co Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
-    for index,sim in act_similarities:
-        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
-
-#userMovies = user_rated_or_tagged_map.get(67348)
-def top5SimilarMovies(userMovies):
-    DataHandler.createDictionaries1()
-    u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenreYear(),5)
-    movies = sorted(list(DataHandler.movie_actor_map.keys()))
-    u1= u[1]
-    movieNewDSpace = pd.DataFrame(u1,index = movies)
-    movie_movie_similarity = DataHandler.movie_movie_Similarity(movieNewDSpace)
-    movieid_name_map = DataHandler.movieid_name_map
-    alpha = constants.ALPHA
-    movie_similarities = pagerank.PPR(movie_movie_similarity,userMovies,alpha)
-    print('Movies similar to the following seed movies: '+str([movieid_name_map.get(i) for i in userMovies]))
-    for index,sim in movie_similarities:
-        if (movie_movie_similarity.columns[index] not in userMovies):
-            print(movieid_name_map.get(movie_movie_similarity.columns[index])+' '+ str(sim))
+#def PPR_top10_SimilarActors(seed):
+#    DataHandler.createDictionaries1()
+#    DataHandler.create_actor_actorid_map()
+#    actact = DataHandler.actor_actor_similarity_matrix()
+#    actor_actorid_map = DataHandler.actor_actorid_map
+#    alpha = constants.ALPHA
+#    act_similarities = pagerank.PPR(actact,seed,alpha)
+#    print('Top 10 actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
+#    for index,sim in act_similarities:
+#        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
+#        
+#def PPR_top10_SimilarCoActors(seed):
+#    DataHandler.createDictionaries1()
+#    DataHandler.create_actor_actorid_map()
+#    actact = DataHandler.actor_actor_similarity_matrix()
+#    actor_actorid_map = DataHandler.actor_actorid_map
+#    alpha = constants.ALPHA
+#    act_similarities = pagerank.PPR(actact,seed,alpha)
+#    print('Co Actors similar to the following seed actors: '+str([actor_actorid_map.get(i) for i in seed]))
+#    for index,sim in act_similarities:
+#        print(actor_actorid_map.get(actact.columns[index])+' '+ str(sim))
+#
+##userMovies = user_rated_or_tagged_map.get(67348)
+#def top5SimilarMovies(userMovies):
+#    DataHandler.createDictionaries1()
+#    u = decompositions.CPDecomposition(DataHandler.getTensor_ActorMovieGenreYear(),5)
+#    movies = sorted(list(DataHandler.movie_actor_map.keys()))
+#    u1= u[1]
+#    movieNewDSpace = pd.DataFrame(u1,index = movies)
+#    movie_movie_similarity = DataHandler.movie_movie_Similarity(movieNewDSpace)
+#    movieid_name_map = DataHandler.movieid_name_map
+#    alpha = constants.ALPHA
+#    movie_similarities = pagerank.PPR(movie_movie_similarity,userMovies,alpha)
+#    print('Movies similar to the following seed movies: '+str([movieid_name_map.get(i) for i in userMovies]))
+#    for index,sim in movie_similarities:
+#        if (movie_movie_similarity.columns[index] not in userMovies):
+#            print(movieid_name_map.get(movie_movie_similarity.columns[index])+' '+ str(sim))
 
 	
 def PersnalizedPageRank_top10_SimilarActors(seed):
