@@ -30,7 +30,8 @@ if __name__ == '__main__':
 				task_dict[(directive, sub_directive)](arg1)
 		elif directive == 'task3':
 			arg1 = sys.argv[3]
-			task_dict[(directive, sub_directive)](arg1)
+			seedList = [int(k) for k in arg1.split(",")]
+			task_dict[(directive, sub_directive)](seedList)
 	else:
 		arg1 = int(sys.argv[2])
 		task_dict[(directive, '')](arg1)
