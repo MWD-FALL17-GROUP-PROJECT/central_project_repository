@@ -26,6 +26,7 @@ def task1d(movie_id, method):
 def task1dImplementation_SVD(movie_id):
     DataHandler.vectors()
     DataHandler.createDictionaries1()
+    movieid_name_map = DataHandler.movieid_name_map
     
     actor_tag_df = DataHandler.actor_tag_df()
     movie_tag_df = DataHandler.load_movie_tag_df()
@@ -33,6 +34,10 @@ def task1dImplementation_SVD(movie_id):
     moviesIndexList=list(movie_tag_df.index)
     actorsIndexList = list(actor_tag_df.index)
     actorsSize = len(actorsIndexList)
+    
+    if (movie_id not in moviesIndexList):
+        print("Movie " + movieid_name_map.get(movie_id) + " not present in mltags data. Quitting")
+        return
     
     actorU, actorSigma, actorV = decompositions.SVDDecomposition(actor_tag_df, 5)
 
@@ -59,7 +64,6 @@ def task1dImplementation_SVD(movie_id):
     
     resultActors = sorted(actorsWithScores, key=operator.itemgetter(0), reverse=False)
     top10Actors = resultActors[0:10]
-    movieid_name_map = DataHandler.movieid_name_map
     print("10 Actors similar to movie " + str(movieid_name_map.get(movie_id)) + " are: ")
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
@@ -68,6 +72,7 @@ def task1dImplementation_SVD(movie_id):
 def task1d_pca(movie_id):
     DataHandler.vectors()
     DataHandler.createDictionaries1()
+    movieid_name_map = DataHandler.movieid_name_map
     
     actor_tag_df = DataHandler.actor_tag_df()
     movie_tag_df = DataHandler.load_movie_tag_df()
@@ -77,6 +82,9 @@ def task1d_pca(movie_id):
     
     actorIndexList = list(actor_tag_df.index)
     movieIndexList = list(movie_tag_df.index)
+    if (movie_id not in movieIndexList):
+        print("Movie " + movieid_name_map.get(movie_id) + " not present in mltags data. Quitting")
+        return
     
     actorSemantics = decompositions.PCADecomposition(actor_tag_df, 5)
     
@@ -102,7 +110,6 @@ def task1d_pca(movie_id):
     
     result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
     
-    movieid_name_map = DataHandler.movieid_name_map
     print("Top 10 actors similar to movie: " + str(movieid_name_map.get(movie_id)) + " are: ")
     top10Actors = result[0:10]
     for tup in top10Actors:
@@ -114,12 +121,16 @@ def task1d_tfidf(movie_id):
     DataHandler.createDictionaries1()
     actorTagDataframe = DataHandler.actor_tag_df()
     movie_tag_df = DataHandler.load_movie_tag_df()
+    movieid_name_map = DataHandler.movieid_name_map
     
     actorsTags = np.matrix(actorTagDataframe.as_matrix()).tolist()
     actorIndexList = list(actorTagDataframe.index)
     movieIndexList = list(movie_tag_df.index)
     movieTagMatrix= np.matrix(movie_tag_df.as_matrix())
     
+    if (movie_id not in movieIndexList):
+        print("Movie " + movieid_name_map.get(movie_id) + " not present in mltags data. Quitting")
+        return
     
     actorsForMovie = DataHandler.movie_actor_map.get(movie_id)
     simAndActor = []
@@ -139,7 +150,6 @@ def task1d_tfidf(movie_id):
     result = sorted(simAndActor, key=operator.itemgetter(0), reverse=False)
     
     top10Actors = result[0:10]
-    movieid_name_map = DataHandler.movieid_name_map
     print("Top 10 actors similar to " + str(movieid_name_map.get(movie_id)) + " are: ")
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
@@ -154,9 +164,14 @@ def similarMovieActor_LDA(givenMovie):
     movie_tag_dff = DataHandler.load_movie_tag_df()
     actorTagMatrix = np.matrix(actor_tag_dff.as_matrix())
     movieTagMatrix= np.matrix(movie_tag_dff.as_matrix())
+    movieid_name_map = DataHandler.movieid_name_map
     
     actorIndexList = list(actor_tag_dff.index)
     movieIndexList = list(movie_tag_dff.index)
+    
+    if (givenMovie not in movieIndexList):
+        print("Movie " + movieid_name_map.get(givenMovie) + " not present in mltags data. Quitting")
+        return
     movieInTags = movieTagMatrix[movieIndexList.index(givenMovie)]
     actorsForMovie = DataHandler.movie_actor_map.get(givenMovie)
     
