@@ -30,9 +30,12 @@ def task2a():
     
     split_group_with_index = formatter.splitGroup(u,3)
     
-    print("The three clusters are:")
-    print(tasksBusiness.get_partition_on_ids(split_group_with_index, actorList))
-
+    print("The three groupings are:")
+    groups = tasksBusiness.get_partition_on_ids(split_group_with_index, actorIdActorsDf['name'])
+    for x, v in groups.items() :
+        print ('Group ' + str(x+1) + ' : ' + str(v))
+        print (" ")
+    
 def task2b():
     DataHandler.vectors()
     DataHandler.createDictionaries1()
@@ -51,13 +54,20 @@ def task2b():
     
     split_group_with_index = formatter.splitGroup(u,3)
     
-    print("The three clusters are:")
-    print(tasksBusiness.get_partition_on_ids(split_group_with_index, actorList))
+    print("The three groupings are:")
+    groups = tasksBusiness.get_partition_on_ids(split_group_with_index, actorIdActorsDf['name']);
+    for x, v in groups.items() :
+        print ('Group ' + str(x+1) + ' : ' + str(v))
+        print (" ")
+    print()
     
 def task2c(space):
     tasksBusiness.top5LatentCP("AMY", space)
+    print("The groupings are:")
     tasksBusiness.get_partition_subtasks()
     
 def task2d(space):
     tasksBusiness.top5LatentCP("TMR", space)
+    print("The groupings are:")
     tasksBusiness.get_partition_subtasks()
+

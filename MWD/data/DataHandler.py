@@ -644,30 +644,6 @@ def actor_tagVector_tf():
 		actor_weight_vector_tf[actorID] = [(k, v) for k, v in tag_weight_tuple_tf.items()]
 
 	return actor_weight_vector_tf
-
-def load_genre_matrix_tf(given_genre):
-	createDictionaries1()
-
-	tagList = sorted(list(tag_movie_map.keys()))
-	movieList = []
-	df = pd.DataFrame(columns=tagList)
-	for movie in genre_movie_map[given_genre]:
-		tagsInMovie = movie_tag_map[movie]
-		tf_idf_map = dict()
-		if tagsInMovie:
-			movieList.append(movie)
-			for tag in tagList:
-				moviesInTagCount = len(tag_movie_map[tag])
-				tf_numerator = 0
-				for temp_movie, datetime in tag_movie_map[tag]:
-					if movie == temp_movie:
-						tf_numerator += 1
-				tf = tf_numerator
-				tf_idf = tf
-				tf_idf_map[tag] = tf_idf
-			df = df.append(tf_idf_map, ignore_index=True)
-	df.index = movieList
-	return df
 	
 def userMovieRatings(user_id):
 	movieRatings = dict()

@@ -47,28 +47,75 @@ def top10_Actors_LDA(givenActor):
     print('Actors similar to '+str(DataHandler.actor_actorid_map[givenActor]))
     for actor,sim in top10SimilarActors_similarity:
         print(DataHandler.actor_actorid_map[actor]+' '+str(sim))
-        
+
+def prettyPrintVector(vector, actorsInDf, actorIdActorsDf, indexId):
+    vectorLen = len(vector)
+    for index in range(0, vectorLen):
+        actorId = actorsInDf[index]
+        actorName = actorIdActorsDf[actorIdActorsDf[indexId]==actorId].iloc[0][1]
+        print(actorName + ": " + str(vector[index]), end=', ')
+    print('.')
+    
+def prettyPrintYearVector(vector, actorsInDf, actorIdActorsDf, indexId):
+    vectorLen = len(vector)
+    for index in range(0, vectorLen):
+        actorId = actorsInDf[index]
+        actorName = actorIdActorsDf[actorIdActorsDf[indexId]==actorId].iloc[0][2]
+        print(str(actorName) + ": " + str(vector[index]), end=', ')
+    print('.')
+    
+def prettyPrintRankVector(vector, actorsInDf, actorIdActorsDf, indexId):
+    vectorLen = len(vector)
+    for index in range(0, vectorLen):
+        actorId = actorsInDf[index]
+        actorName = actorIdActorsDf[actorIdActorsDf[indexId]==actorId].iloc[0][3]
+        print(str(actorName) + ": " + str(vector[index]), end=', ')
+    print('.')
+    
 def top5LatentCP(tensorIdentifier, space):
     if (tensorIdentifier == 'AMY'):
         tensor, actors, movies, years = DataHandler.getTensor_ActorMovieYear()
         u = decompositions.CPDecomposition(tensor, constants.RANK)
         if (space == 'Actor'):
+            actorIdActorsDf = DataHandler.actor_info_df
             actorRank = np.array(u[0])
             split_group_with_index = formatter.splitGroup(actorRank, 5)
-            get_partition_on_ids(split_group_with_index, actors)
-            print (actorRank.T)
+            get_partition_on_ids(split_group_with_index, actorIdActorsDf['name'])
+            semantics = np.matrix(actorRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintVector(semantic, actors, actorIdActorsDf, 'id')
+                print("")
+            
             return
         if (space == 'Movie'):
+            movieIdMoviesDf = DataHandler.genre_movie_df
             movieRank = np.array(u[1])
             split_group_with_index = formatter.splitGroup(movieRank, 5)
-            get_partition_on_ids(split_group_with_index, movies)
-            print(movieRank.T)
+            get_partition_on_ids(split_group_with_index, movieIdMoviesDf['moviename'])
+            
+            semantics = np.matrix(movieRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintVector(semantic, movies, movieIdMoviesDf, 'movieid')
+                print("")
+                
             return
         if (space == 'Year'):
+            movieIdMoviesDf = DataHandler.genre_movie_df
             YearRank = np.array(u[2])
             split_group_with_index = formatter.splitGroup(YearRank, 5)
             get_partition_on_ids(split_group_with_index, years)
-            print(YearRank.T)
+            
+            semantics = np.matrix(YearRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintYearVector(semantic, years, movieIdMoviesDf, 'year')
+                print("")
+                
             return
         else:
             print('Wrong Space')
@@ -77,22 +124,43 @@ def top5LatentCP(tensorIdentifier, space):
         tensor, tags, movies, ranks = DataHandler.getTensor_TagMovieRating()
         u = decompositions.CPDecomposition(tensor,constants.RANK)
         if (space == 'Tag'):
+            tagIdTagsDf = DataHandler.tag_id_df
             tagRank = np.array(u[0])
             split_group_with_index = formatter.splitGroup(tagRank, 5)
-            get_partition_on_ids(split_group_with_index, tags)
-            print(tagRank.T)
+            get_partition_on_ids(split_group_with_index, tagIdTagsDf['tag'])
+            semantics = np.matrix(tagRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintVector(semantic, tags, tagIdTagsDf, 'tagId')
+                print("")
+                
             return
         if (space == 'Movie'):
+            movieIdMoviesDf = DataHandler.genre_movie_df
             movieRank = np.array(u[1])
             split_group_with_index = formatter.splitGroup(movieRank, 5)
-            get_partition_on_ids(split_group_with_index, movies)
-            print(movieRank.T)
+            get_partition_on_ids(split_group_with_index, movieIdMoviesDf['moviename'])
+            semantics = np.matrix(movieRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintVector(semantic, movies, movieIdMoviesDf, 'movieid')
+                print("")
+                
             return
-        if (space == 'Ranking'):
+        if (space == 'Rating'):
+            userRatings = DataHandler.user_ratings_df
             RankingRank = np.array(u[2])
             split_group_with_index = formatter.splitGroup(RankingRank, 5)
             get_partition_on_ids(split_group_with_index, ranks)
-            print(RankingRank.T)
+            semantics = np.matrix(RankingRank.T).tolist()
+            
+            print("Top 5 semantics are:")
+            for semantic in semantics:
+                prettyPrintRankVector(semantic, ranks, userRatings, 'rating')
+                print("")
+                
             return
         else:
             print('Wrong Space')
@@ -114,7 +182,10 @@ def get_partition_on_ids(split_group_with_index, data) :
     return data_required
     
 def get_partition_subtasks() :
-    print(data_required)
+    for x, v in data_required.items() :
+        print ('Group ' + str(x+1) + ' : ' + str(v))
+        print (" ")
+    #print(data_required)
         
 def PPR_top10_SimilarActors(seed):
     DataHandler.createDictionaries1()

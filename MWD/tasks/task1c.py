@@ -49,7 +49,6 @@ def actor_task1c_SVD(actor_id):
     top10Actors = result[0:10]
     for tup in top10Actors:
         print(tup[1] + " : " + str(tup[0]))
-    print(result[0:10])
     return
 
 '''
