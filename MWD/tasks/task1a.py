@@ -86,9 +86,9 @@ def genre_spaceTags_LDA_tf(genre):
     ldaModel,doc_term_matrix,id_Term_map  =  decompositions.LDADecomposition(df,4,constants.genreTagsSpacePasses)
     topic_terms = defaultdict(set)
     for i in range(0,4):
-        for tuples in ldaModel.get_topic_terms(i):#get_topics_terms returns top n(default = 10) words of the topics
+        for tuples in ldaModel.get_topic_terms(i,topn = len(tag_id_map)):#get_topics_terms returns top n(default = 10) words of the topics
             term = tag_id_map.get(id_Term_map.get(tuples[0]))
             topic_terms[i].add((term,tuples[1]))
     for i in range(0,4):
-        print(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True))
+        print('Semantic '+str(i+1)+' '+str(sorted(topic_terms.get(i),key = itemgetter(1),reverse=True)))
         print('\n')
