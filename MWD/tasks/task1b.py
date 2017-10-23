@@ -32,8 +32,9 @@ def task1b_svd(genre):
     actorIdActorsDf = DataHandler.actor_info_df
     
     genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
-    if (genre not in list(genre_actor_tags_df.index)):
-        print("genre " + genre + " not present in data")
+    gmMap = DataHandler.genre_movie_map
+    if (genre not in list(gmMap.keys())):
+        print("genre " + genre + " not present in data\n")
         return
     actorsInDf = list(genre_actor_tags_df.transpose().index)
     genre_semantics = decompositions.PCADecomposition(genre_actor_tags_df, 4)
@@ -43,6 +44,7 @@ def task1b_svd(genre):
     for semantic in np.matrix(genre_semantics).tolist():
         print("semantic " + str(index) + ": ")
         prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        print("")
         index = index + 1
     return
 
@@ -53,7 +55,8 @@ def task1b_pca(genre):
     actorIdActorsDf = DataHandler.actor_info_df
     
     genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
-    if (genre not in list(genre_actor_tags_df.index)):
+    gmMap = DataHandler.genre_movie_map
+    if (genre not in list(gmMap.keys())):
         print("genre " + genre + " not present in data")
         return
     actorsInDf = list(genre_actor_tags_df.transpose().index)
@@ -64,6 +67,7 @@ def task1b_pca(genre):
     for semantic in np.matrix(genre_semantics).tolist():
         print("semantic " + str(index) + ": ")
         prettyPrintActorVector(semantic, actorsInDf, actorIdActorsDf)
+        print("")
         index = index + 1
     return
 
@@ -76,8 +80,8 @@ def genre_spaceActors_LDA_tf(genre):
     actor_actorid_map = DataHandler.actor_actorid_map
     df = DataHandler.load_genre_actor_matrix_tf(genre)
     
-    genre_actor_tags_df = DataHandler.load_genre_actor_matrix(genre)
-    if (genre not in list(genre_actor_tags_df.index)):
+    gmMap = DataHandler.genre_movie_map
+    if (genre not in list(gmMap.keys())):
         print("genre " + genre + " not in data")
         return
     
