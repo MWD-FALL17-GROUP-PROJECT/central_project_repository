@@ -125,6 +125,11 @@ def task1c_tfidf(actor_id):
     return
 
 def top10_Actors_LDA_tf(givenActor):
+    DataHandler.createDictionaries1()
+    actor_movie_rank_map = DataHandler.actor_movie_rank_map
+    if givenActor not in actor_movie_rank_map:
+        print('Invalid seed actor id : '+str(givenActor))
+        return
     DataHandler.create_actor_actorid_map()
     top10SimilarActors_similarity = DataHandler.similarActors_LDA_tf(givenActor)
     print('Actors similar to '+str(DataHandler.actor_actorid_map[givenActor]))
